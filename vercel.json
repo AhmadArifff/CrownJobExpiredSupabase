@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/v1/cronjob/auto-ping",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
