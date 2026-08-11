@@ -136,7 +136,7 @@ export default function ConfigPage() {
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <Settings className="w-6 h-6 text-brand-400" /> Supabase Configurations
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
             Save and manage your Supabase target credentials (Max 2 DBs per email account).
           </p>
         </div>
@@ -156,45 +156,45 @@ export default function ConfigPage() {
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
                   <h3 className="font-bold text-slate-900 dark:text-white text-lg">{cfg.databaseName}</h3>
-                  <div className="text-xs text-slate-400 font-mono mt-0.5">{cfg.supabaseUrl}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">{cfg.supabaseUrl}</div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => openEditModal(cfg)}
-                    className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                    className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                   >
                     <Edit3 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(cfg)}
-                    className="p-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors"
+                    className="p-2 text-rose-500 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
-              <div className="space-y-2 text-xs py-3 my-3 border-y border-slate-800/80">
+              <div className="space-y-2 text-xs py-3 my-3 border-y border-slate-200 dark:border-slate-800/80">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Account Email:</span>
-                  <span className="text-slate-200 font-semibold">{cfg.accountEmail}</span>
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Account Email:</span>
+                  <span className="text-slate-900 dark:text-slate-200 font-semibold">{cfg.accountEmail}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Anon Key:</span>
-                  <span className="text-slate-400 font-mono">{cfg.supabaseAnonKeyMasked}</span>
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Anon Key:</span>
+                  <span className="text-slate-600 dark:text-slate-400 font-mono">{cfg.supabaseAnonKeyMasked}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Service Role Key:</span>
-                  <span className="text-slate-400 font-mono">{cfg.supabaseServiceRoleKeyMasked}</span>
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">Service Role Key:</span>
+                  <span className="text-slate-600 dark:text-slate-400 font-mono">{cfg.supabaseServiceRoleKeyMasked}</span>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center justify-between pt-2">
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-slate-500 dark:text-slate-400">
                 Created: {new Date(cfg.createdAt).toLocaleDateString()}
               </span>
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-800 text-slate-300">
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                 {cfg.isTableGenerated ? 'Table Ready' : 'Needs Test'}
               </span>
             </div>
@@ -204,34 +204,34 @@ export default function ConfigPage() {
 
       {/* Add / Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-lg glass-panel p-6 rounded-3xl border border-slate-800 shadow-2xl relative animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 dark:bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-lg glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                 {editingConfig ? 'Edit Supabase Config' : 'Add Supabase Config'}
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg"
+                className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {formError && (
-              <div className="mb-4 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2.5">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400" />
+              <div className="mb-4 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-300 text-xs flex items-center gap-2.5">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-500" />
                 <span>{formError}</span>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">
                   Supabase Account Email
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                   <input
                     type="email"
                     required
@@ -241,17 +241,17 @@ export default function ConfigPage() {
                     className="w-full pl-9 pr-3 py-2.5 rounded-xl glass-input text-xs"
                   />
                 </div>
-                <p className="text-[11px] text-slate-500 mt-1">
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 font-medium">
                   Max 2 DB configs permitted per email address.
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">
                   Database / Project Name
                 </label>
                 <div className="relative">
-                  <Database className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                  <Database className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                   <input
                     type="text"
                     required
@@ -264,7 +264,7 @@ export default function ConfigPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">
                   Supabase URL
                 </label>
                 <input
@@ -278,11 +278,11 @@ export default function ConfigPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">
                   Anon Key
                 </label>
                 <div className="relative">
-                  <Key className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                  <Key className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                   <textarea
                     required
                     rows={2}
@@ -295,11 +295,11 @@ export default function ConfigPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">
                   Service Role Key (Encrypted AES-256)
                 </label>
                 <div className="relative">
-                  <ShieldAlert className="w-4 h-4 text-brand-400 absolute left-3 top-3" />
+                  <ShieldAlert className="w-4 h-4 text-brand-500 absolute left-3 top-3" />
                   <textarea
                     required
                     rows={2}
@@ -315,14 +315,14 @@ export default function ConfigPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300"
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-xs font-semibold text-white shadow-lg shadow-brand-500/25 disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-xs font-semibold text-white shadow-lg shadow-brand-500/25 disabled:opacity-50 transition-colors"
                 >
                   {submitting ? 'Saving...' : 'Save Configuration'}
                 </button>
