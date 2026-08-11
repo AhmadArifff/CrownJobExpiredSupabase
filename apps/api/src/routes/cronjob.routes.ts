@@ -31,8 +31,14 @@ router.post('/:configId/generate-table', async (req: any, res: any) => {
       return res.status(404).json(Result.fail('Config not found'));
     }
 
+    if (!config.databasePassword) {
+      return res.status(400).json(
+        Result.fail('Database Password belum diisi. Silakan update config dengan menambahkan Database Password dari Supabase Dashboard → Settings → Database.')
+      );
+    }
+
     const { migrateKeepAliveTable } = await import('../lib/supabase-remote-sql');
-    const migResult = await migrateKeepAliveTable(config.supabaseUrl, config.supabaseServiceRoleKey);
+    const migResult = await migrateKeepAliveTable(config.supabaseUrl, config.databasePassword);
 
     if (!migResult.success) {
       await prisma.activityLog.create({

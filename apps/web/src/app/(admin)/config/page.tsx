@@ -20,6 +20,7 @@ export default function ConfigPage() {
   const [supabaseUrl, setSupabaseUrl] = useState('');
   const [supabaseAnonKey, setSupabaseAnonKey] = useState('');
   const [supabaseServiceRoleKey, setSupabaseServiceRoleKey] = useState('');
+  const [databasePassword, setDatabasePassword] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -41,6 +42,7 @@ export default function ConfigPage() {
     setSupabaseUrl('');
     setSupabaseAnonKey('');
     setSupabaseServiceRoleKey('');
+    setDatabasePassword('');
     setFormError(null);
     setIsModalOpen(true);
   };
@@ -52,6 +54,7 @@ export default function ConfigPage() {
     setSupabaseUrl(cfg.supabaseUrl);
     setSupabaseAnonKey(cfg.supabaseAnonKeyMasked);
     setSupabaseServiceRoleKey(cfg.supabaseServiceRoleKeyMasked);
+    setDatabasePassword(''); // Never pre-fill password for security
     setFormError(null);
     setIsModalOpen(true);
   };
@@ -68,6 +71,12 @@ export default function ConfigPage() {
       supabaseServiceRoleKey,
     };
 
+    // Build the data to send, optionally including databasePassword
+    const submitData = {
+      ...inputData,
+      ...(databasePassword && { databasePassword }),
+    };
+
     // Client validation
     const validation = createConfigSchema.safeParse(inputData);
     if (!validation.success) {
@@ -79,7 +88,7 @@ export default function ConfigPage() {
 
     if (editingConfig) {
       // Update
-      const res = await api.put<SupabaseConfigDTO>(`/configs/${editingConfig.id}`, inputData);
+      const res = await api.put<SupabaseConfigDTO>(`/configs/${editingConfig.id}`, submitData);
       setSubmitting(false);
       if (res.isSuccess) {
         updateConfig(editingConfig.id, res.getValue());
@@ -102,7 +111,7 @@ export default function ConfigPage() {
         return;
       }
 
-      const res = await api.post<SupabaseConfigDTO>('/configs', inputData);
+      const res = await api.post<SupabaseConfigDTO>('/configs', submitData);
       setSubmitting(false);
 
       if (res.isSuccess) {
@@ -309,6 +318,25 @@ export default function ConfigPage() {
                     className="w-full pl-9 pr-3 py-2 rounded-xl glass-input text-xs font-mono"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">
+                  Database Password <span className="text-slate-400 dark:text-slate-500 font-normal">(for auto-migration)</span>
+                </label>
+                <div className="relative">
+                  <Key className="w-4 h-4 text-amber-500 absolute left-3 top-3" />
+                  <input
+                    type="password"
+                    value={databasePassword}
+                    onChange={(e) => setDatabasePassword(e.target.value)}
+                    placeholder="Your Supabase database password"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl glass-input text-xs font-mono"
+                  />
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                  Found in Supabase Dashboard → Settings → Database → Connection info. Required for auto table creation.
+                </p>
               </div>
 
               <div className="pt-3 flex items-center justify-end gap-3">

@@ -1,11 +1,18 @@
 /**
  * Utility to execute raw SQL on a remote Supabase database.
  *
- * Uses Supabase's internal pg-meta service endpoint (/pg/query)
- * which accepts the service_role key for authentication.
+ * Uses the `pg` (node-postgres) library to connect directly to
+ * the Supabase PostgreSQL instance via `db.<ref>.supabase.co:5432`.
  * This allows DDL operations (CREATE TABLE, ALTER TABLE) that
- * are not supported by the standard PostgREST API (/rest/v1/).
+ * are NOT supported by the Supabase REST/PostgREST API.
+ *
+ * Requires: the database password (found in Supabase Dashboard →
+ *           Settings → Database → Connection info → Password).
  */
+
+import pg from 'pg';
+
+const { Client } = pg;
 
 const MIGRATION_SQL = `
 CREATE TABLE IF NOT EXISTS public.cronjob_keepalive (
@@ -22,7 +29,7 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies WHERE tablename = 'cronjob_keepalive' AND policyname = 'Allow all access'
   ) THEN
-    CREATE POLICY "Allow all access" ON public.cronjob_keepalive FOR ALL USING (true) WITH CHECK (true);
+    EXECUTE 'CREATE POLICY "Allow all access" ON public.cronjob_keepalive FOR ALL USING (true) WITH CHECK (true)';
   END IF;
 END $$;
 
@@ -31,38 +38,44 @@ NOTIFY pgrst, 'reload schema';
 
 export { MIGRATION_SQL };
 
+/**
+ * Extract the project reference from a Supabase URL.
+ * e.g. "https://uwhqwobgvwhkgddoowzz.supabase.co" → "uwhqwobgvwhkgddoowzz"
+ */
+function extractRef(supabaseUrl: string): string {
+  const match = supabaseUrl.match(/https:\/\/([a-z0-9]+)\.supabase\.co/);
+  if (!match) throw new Error(`Cannot extract project ref from URL: ${supabaseUrl}`);
+  return match[1];
+}
+
 export async function executeRemoteSQL(
   supabaseUrl: string,
-  serviceRoleKey: string,
+  databasePassword: string,
   sql: string
 ): Promise<{ success: boolean; data?: any; error?: string }> {
+  const ref = extractRef(supabaseUrl);
+
+  const client = new Client({
+    host: `db.${ref}.supabase.co`,
+    port: 5432,
+    database: 'postgres',
+    user: 'postgres',
+    password: databasePassword,
+    ssl: { rejectUnauthorized: false },
+    connectionTimeoutMillis: 10000,
+  });
+
   try {
-    // Use Supabase's pg-meta endpoint for DDL operations
-    const response = await fetch(`${supabaseUrl}/pg/query`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': serviceRoleKey,
-        'Authorization': `Bearer ${serviceRoleKey}`,
-      },
-      body: JSON.stringify({ query: sql }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      return {
-        success: false,
-        error: `Remote SQL execution failed (HTTP ${response.status}): ${errorText}`,
-      };
-    }
-
-    const result = await response.json().catch(() => ({}));
+    await client.connect();
+    const result = await client.query(sql);
     return { success: true, data: result };
   } catch (error: any) {
     return {
       success: false,
-      error: `Remote SQL connection error: ${error.message}`,
+      error: `Remote SQL error: ${error.message}`,
     };
+  } finally {
+    await client.end().catch(() => {}); // always close
   }
 }
 
@@ -72,9 +85,9 @@ export async function executeRemoteSQL(
  */
 export async function migrateKeepAliveTable(
   supabaseUrl: string,
-  serviceRoleKey: string
+  databasePassword: string
 ): Promise<{ success: boolean; error?: string }> {
-  const result = await executeRemoteSQL(supabaseUrl, serviceRoleKey, MIGRATION_SQL);
+  const result = await executeRemoteSQL(supabaseUrl, databasePassword, MIGRATION_SQL);
 
   if (!result.success) {
     return { success: false, error: result.error };

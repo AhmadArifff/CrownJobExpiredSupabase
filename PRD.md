@@ -1113,6 +1113,20 @@ User klik "Test Connection" / "Connect"
 - Bulk Delete: Select multiple rows → POST `/cronjob/:configId/data/bulk-delete`
 - Ping All: POST `/api/v1/cronjob/ping-all` → ping semua configs yang `is_table_generated = true`
 
+#### US-4.4: 7-Day Inactivity Warning & Table Row Countdown (Supabase Free Tier Rule)
+**As a** user,
+**I want to** melihat indikator limit 7 hari langsung pada data tabel (Remote Table Rows) dan kolom tersisa per row,
+**So that** saya dapat memantau sisa masa proteksi secara real-time dan melihat limit otomatis menyesuaikan setiap kali ada ping baru.
+
+**Acceptance Criteria:**
+- **Given** user melihat halaman Cronjob (Remote Table Rows)
+- **When** data tabel (`cronjob_keepalive`) di-load atau ditambahkan ping baru:
+  - Backend/Frontend menghitung sisa waktu proteksi 7 hari berdasarkan timestamp ping terbaru (`tableData[0].createdAt` atau `lastInteraction`).
+  - Tambahkan kolom khusus pada data tabel: **"Protection Limit / Sisa Waktu"** yang menampilkan status hitung mundur sisa hari (contoh: `7 days left (Active)`, `1 day left (Warning)`, `Expired`).
+- **Then** jika ping terbaru berada pada hari ke-6 (tersisa 1 hari lagi), tampilkan warning badge merah & toast notification yang mencolok.
+- **And** saat user menambahkan test ping baru (Insert Ping), data tabel di-refresh dan limit sisa waktu otomatis ter-reset kembali ke **7 hari** secara real-time.
+- **And** berikan toast konfirmasi setelah ping (cronjob) sukses: `"Cronjob Confirmed: Ping successful! Your 7-day limit has been reset."`
+
 ---
 
 ### Epic 5: Dashboard & Monitoring

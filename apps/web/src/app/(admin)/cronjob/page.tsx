@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Activity, RefreshCw, Zap, Trash2, Plus, CheckCircle2, AlertTriangle, ShieldCheck, Database } from 'lucide-react';
+import { Activity, RefreshCw, Zap, Trash2, Plus, CheckCircle2, AlertTriangle, ShieldCheck, Database, Bell } from 'lucide-react';
 import { useConfigStore } from '@/stores/useConfigStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { api } from '@/lib/api';
@@ -107,8 +107,9 @@ export default function CronJobPage() {
     setPinging(false);
 
     if (res.isSuccess) {
-      addToast({ type: 'success', message: 'Keep-alive ping inserted into database!' });
+      addToast({ type: 'success', message: 'Cronjob Confirmed: Ping successful! Your 7-day limit has been reset.' });
       loadTableData(selectedConfigId);
+      fetchUserConfigs();
     } else {
       addToast({
         type: 'error',
@@ -149,6 +150,81 @@ export default function CronJobPage() {
 
   const selectedConfig = configs.find((c) => c.id === selectedConfigId);
 
+  const latestPingDate = tableData.length > 0 && tableData[0].createdAt
+    ? new Date(tableData[0].createdAt)
+    : selectedConfig?.lastInteraction
+    ? new Date(selectedConfig.lastInteraction)
+    : null;
+
+  const getRemainingDaysAndHours = (dateInput: string | Date | null) => {
+    if (!dateInput) return null;
+    const startTime = new Date(dateInput).getTime();
+    const deadline = startTime + 7 * 24 * 60 * 60 * 1000;
+    const remainingMs = deadline - Date.now();
+
+    if (remainingMs <= 0) {
+      return { days: 0, hours: 0, formatted: '0 days 0 hours', isExpired: true, totalHours: 0 };
+    }
+
+    const totalHours = Math.floor(remainingMs / (1000 * 60 * 60));
+    const days = Math.floor(totalHours / 24);
+    const hours = totalHours % 24;
+
+    const dayText = days === 1 ? '1 day' : `${days} days`;
+    const hourText = hours === 1 ? '1 hour' : `${hours} hours`;
+    const formatted = days > 0 ? `${dayText} ${hourText}` : hourText;
+
+    return { days, hours, formatted, isExpired: false, totalHours };
+  };
+
+  const latestRemaining = getRemainingDaysAndHours(latestPingDate);
+
+  const getRowProtectionStatus = (createdAt: string) => {
+    const remaining = getRemainingDaysAndHours(createdAt);
+    if (!remaining || remaining.isExpired) {
+      return {
+        label: 'Expired (0 days 0 hours)',
+        className: 'bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/30',
+      };
+    }
+
+    if (remaining.totalHours <= 24) {
+      return {
+        label: `${remaining.formatted} left (Critical)`,
+        className: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 animate-pulse font-bold',
+      };
+    } else if (remaining.days <= 2) {
+      return {
+        label: `${remaining.formatted} left (Warning)`,
+        className: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-semibold',
+      };
+    } else {
+      return {
+        label: `${remaining.formatted} left (Active)`,
+        className: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-medium',
+      };
+    }
+  };
+
+  // Automatic Notification Toast on target selection
+  useEffect(() => {
+    if (selectedConfig) {
+      if (latestRemaining && latestRemaining.totalHours <= 24) {
+        addToast({
+          type: 'error',
+          message: `🚨 WARNING NOTIFICATION: Config '${selectedConfig.databaseName}' has ${latestRemaining.formatted} left before Supabase auto-pause!`,
+          actionLabel: 'Ping Now',
+          onAction: handleAddPing,
+        });
+      } else if (latestRemaining) {
+        addToast({
+          type: 'info',
+          message: `🔔 NOTIFICATION: Config '${selectedConfig.databaseName}' active (${latestRemaining.formatted} left until pause limit).`,
+        });
+      }
+    }
+  }, [selectedConfigId]);
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -170,6 +246,63 @@ export default function CronJobPage() {
           {pinging ? 'Pinging All...' : 'Ping All Projects'}
         </button>
       </div>
+
+      {/* Dynamic Notification Alert Banner (PRD US-4.4 Notification System) */}
+      {selectedConfig && (
+        <div
+          className={`p-4 rounded-2xl border backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all shadow-lg ${
+            latestRemaining && latestRemaining.totalHours <= 24
+              ? 'bg-rose-500/10 border-rose-500/30 text-rose-900 dark:text-rose-200'
+              : !latestRemaining
+              ? 'bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-200'
+              : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-900 dark:text-emerald-200'
+          }`}
+        >
+          <div className="flex items-start sm:items-center gap-3">
+            <div
+              className={`p-2.5 rounded-xl flex items-center justify-center shrink-0 ${
+                latestRemaining && latestRemaining.totalHours <= 24
+                  ? 'bg-rose-500 text-white animate-bounce'
+                  : !latestRemaining
+                  ? 'bg-amber-500 text-white'
+                  : 'bg-emerald-500 text-white'
+              }`}
+            >
+              <Bell className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-bold text-sm flex items-center gap-2">
+                <span>Notification Status Keep-Alive</span>
+                <span className="text-xs px-2 py-0.5 rounded-full font-mono font-semibold bg-white/20 dark:bg-black/20">
+                  {selectedConfig.databaseName}
+                </span>
+              </div>
+              <p className="text-xs mt-0.5 opacity-90 leading-relaxed">
+                {latestRemaining && latestRemaining.totalHours <= 24
+                  ? `🚨 CRITICAL WARNING: Database has ${latestRemaining.formatted} left before Supabase auto-pauses! Please execute a Keep-Alive Ping immediately.`
+                  : !latestRemaining
+                  ? `⚠️ INITIAL PROTECTION REQUIRED: No keep-alive ping detected yet for database '${selectedConfig.databaseName}'. Click 'Add Keep-Alive Ping' to initiate protection.`
+                  : `✅ ACTIVE PROTECTION: Database '${selectedConfig.databaseName}' is healthy and protected. Next required keep-alive ping is in ${latestRemaining.formatted}.`}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            <button
+              onClick={handleAddPing}
+              disabled={pinging}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5 ${
+                latestRemaining && latestRemaining.totalHours <= 24
+                  ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-600/30'
+                  : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30'
+              }`}
+            >
+              <Zap className={`w-3.5 h-3.5 ${pinging ? 'animate-spin' : ''}`} />
+              {pinging ? 'Pinging...' : 'Send Keep-Alive Ping Now'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Selector & Actions Bar */}
       <div className="glass-card p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -247,7 +380,20 @@ export default function CronJobPage() {
       {/* Data Table */}
       <div className="glass-panel rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
         <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <h3 className="font-bold text-slate-900 dark:text-white text-sm">Remote Table Rows</h3>
+          <div className="flex items-center gap-3">
+            <h3 className="font-bold text-slate-900 dark:text-white text-sm">Remote Table Rows</h3>
+            {latestRemaining && latestRemaining.totalHours <= 24 && (
+              <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 rounded-full animate-pulse flex items-center gap-1.5">
+                <AlertTriangle className="w-3 h-3" />
+                Warning: {latestRemaining.formatted} left before pause! Please ping now.
+              </span>
+            )}
+            {latestRemaining && latestRemaining.totalHours > 24 && (
+              <span className="px-2.5 py-1 text-[10px] font-bold tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 rounded-full">
+                {latestRemaining.formatted} left until pause
+              </span>
+            )}
+          </div>
           <button
             onClick={() => selectedConfigId && loadTableData(selectedConfigId)}
             className="text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white flex items-center gap-1.5"
@@ -264,35 +410,44 @@ export default function CronJobPage() {
                 <th className="px-6 py-3.5">Ping Message</th>
                 <th className="px-6 py-3.5">Triggered By</th>
                 <th className="px-6 py-3.5">Created At</th>
+                <th className="px-6 py-3.5">Protection Limit</th>
                 <th className="px-6 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
               {tableData.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
                     No keep-alive ping data rows found in this table.
                   </td>
                 </tr>
               ) : (
-                tableData.map((row) => (
-                  <tr key={row.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                    <td className="px-6 py-4 font-mono font-semibold text-brand-400">#{row.id}</td>
-                    <td className="px-6 py-4 text-slate-700 dark:text-slate-200 font-mono">{row.pingMessage}</td>
-                    <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{row.createdBy}</td>
-                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
-                      <span suppressHydrationWarning>{new Date(row.createdAt).toLocaleString()}</span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleDeleteRow(row.id)}
-                        className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                tableData.map((row) => {
+                  const protection = getRowProtectionStatus(row.createdAt);
+                  return (
+                    <tr key={row.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                      <td className="px-6 py-4 font-mono font-semibold text-brand-400">#{row.id}</td>
+                      <td className="px-6 py-4 text-slate-700 dark:text-slate-200 font-mono">{row.pingMessage}</td>
+                      <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{row.createdBy}</td>
+                      <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
+                        <span suppressHydrationWarning>{new Date(row.createdAt).toLocaleString()}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${protection.className}`}>
+                          {protection.label}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => handleDeleteRow(row.id)}
+                          className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

@@ -81,18 +81,24 @@ model Verification {
 // ---------------------------------------------
 
 model SupabaseConfig {
-  id                     String   @id @default(cuid())
+  id                     String    @id @default(cuid())
   userId                 String
-  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   accountEmail           String
   databaseName           String
   supabaseUrl            String
   supabaseAnonKey        String
   supabaseServiceRoleKey String
+  databasePassword       String?   // Supabase DB password for direct PostgreSQL DDL access
   
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  status                 String    @default("pending")   // pending | active | error
+  isTableGenerated       Boolean   @default(false)
+  lastPingStatus         String?                          // success | failed
+  lastInteraction        DateTime?
+  
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
   
   logs                   ActivityLog[]
 

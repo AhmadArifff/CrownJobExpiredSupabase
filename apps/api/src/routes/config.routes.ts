@@ -34,7 +34,7 @@ router.get('/', async (req: any, res: any) => {
 // POST /api/configs
 router.post('/', async (req: any, res: any) => {
   try {
-    const { accountEmail, databaseName, supabaseUrl, supabaseAnonKey, supabaseServiceRoleKey } = req.body;
+    const { accountEmail, databaseName, supabaseUrl, supabaseAnonKey, supabaseServiceRoleKey, databasePassword } = req.body;
 
     // Check limit max 2 configs
     const count = await prisma.supabaseConfig.count({
@@ -53,6 +53,7 @@ router.post('/', async (req: any, res: any) => {
         supabaseUrl,
         supabaseAnonKey,
         supabaseServiceRoleKey,
+        databasePassword: databasePassword || null,
       },
     });
 
@@ -81,6 +82,38 @@ router.delete('/:id', async (req: any, res: any) => {
     });
 
     return res.json(Result.ok({ message: 'Konfigurasi berhasil dihapus' }));
+  } catch (error: any) {
+    return res.status(500).json(Result.fail(error.message));
+  }
+});
+
+// PUT /api/configs/:id
+router.put('/:id', async (req: any, res: any) => {
+  try {
+    const { id } = req.params;
+    const { accountEmail, databaseName, supabaseUrl, supabaseAnonKey, supabaseServiceRoleKey, databasePassword } = req.body;
+
+    const existing = await prisma.supabaseConfig.findFirst({
+      where: { id, userId: req.user.id },
+    });
+
+    if (!existing) {
+      return res.status(404).json(Result.fail('Config not found'));
+    }
+
+    const updated = await prisma.supabaseConfig.update({
+      where: { id },
+      data: {
+        ...(accountEmail && { accountEmail }),
+        ...(databaseName && { databaseName }),
+        ...(supabaseUrl && { supabaseUrl }),
+        ...(supabaseAnonKey && { supabaseAnonKey }),
+        ...(supabaseServiceRoleKey && { supabaseServiceRoleKey }),
+        ...(databasePassword !== undefined && { databasePassword: databasePassword || null }),
+      },
+    });
+
+    return res.json(Result.ok(updated));
   } catch (error: any) {
     return res.status(500).json(Result.fail(error.message));
   }
@@ -146,8 +179,27 @@ router.post('/:id/test-connection', async (req: any, res: any) => {
 
     // ── Step 3: Auto CREATE TABLE if missing ───────────────────
     if (tableIsMissing) {
+      if (!config.databasePassword) {
+        await prisma.activityLog.create({
+          data: {
+            userId: req.user.id,
+            configId: config.id,
+            action: 'generate_table',
+            status: 'failed',
+            message: 'Database password not configured',
+          },
+        });
+        await prisma.supabaseConfig.update({
+          where: { id },
+          data: { status: 'active', isTableGenerated: false },
+        });
+        return res.status(400).json(
+          Result.fail('Tabel belum ada dan Database Password belum diisi. Silakan update config Anda dengan menambahkan Database Password dari Supabase Dashboard → Settings → Database.')
+        );
+      }
+
       const { migrateKeepAliveTable } = await import('../lib/supabase-remote-sql');
-      const migResult = await migrateKeepAliveTable(config.supabaseUrl, config.supabaseServiceRoleKey);
+      const migResult = await migrateKeepAliveTable(config.supabaseUrl, config.databasePassword);
 
       if (!migResult.success) {
         // Connection OK but table creation failed → status stays active, isTableGenerated stays false
