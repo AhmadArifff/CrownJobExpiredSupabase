@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Database, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useUIStore } from '@/stores/useUIStore';
-import { api } from '@/lib/api';
+import { authClient } from '@/lib/auth-client';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -23,28 +23,19 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const res = await api.post<{ user: any; token: string }>('/auth/login', {
+    const { data, error: authError } = await authClient.signIn.email({
       email,
       password,
     });
 
     setLoading(false);
 
-    if (res.isSuccess) {
-      const data = res.getValue();
-      setAuth(data.user, data.token);
+    if (data) {
+      setAuth(data.user as any, data.token || 'better-auth-cookie');
       addToast({ type: 'success', message: 'Logged in successfully!' });
       router.push('/dashboard');
     } else {
-      // Mock login fallback for testing initial UI flow before backend is live
-      if (email === 'demo@example.com' || process.env.NODE_ENV === 'development') {
-        const mockUser = { id: 'usr_demo', email, name: 'Demo User', createdAt: new Date().toISOString() };
-        setAuth(mockUser, 'mock_jwt_token_12345');
-        addToast({ type: 'success', message: 'Logged in (Development Mode)' });
-        router.push('/dashboard');
-        return;
-      }
-      setError(res.error || 'Invalid credentials');
+      setError(authError?.message || 'Invalid credentials');
     }
   };
 

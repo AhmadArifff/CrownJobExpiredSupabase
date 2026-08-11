@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Database, Lock, Mail, User, ArrowRight, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useUIStore } from '@/stores/useUIStore';
-import { api } from '@/lib/api';
+import { authClient } from '@/lib/auth-client';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -24,29 +24,20 @@ export default function RegisterPage() {
     setLoading(true);
     setError(null);
 
-    const res = await api.post<{ user: any; token: string }>('/auth/register', {
-      name,
+    const { data, error: authError } = await authClient.signUp.email({
       email,
       password,
+      name,
     });
 
     setLoading(false);
 
-    if (res.isSuccess) {
-      const data = res.getValue();
-      setAuth(data.user, data.token);
+    if (data) {
+      setAuth(data.user as any, data.token || 'better-auth-cookie');
       addToast({ type: 'success', message: 'Account created successfully!' });
       router.push('/dashboard');
     } else {
-      // Mock register fallback for testing initial UI flow before backend is live
-      if (process.env.NODE_ENV === 'development') {
-        const mockUser = { id: 'usr_' + Date.now(), email, name, createdAt: new Date().toISOString() };
-        setAuth(mockUser, 'mock_jwt_token_12345');
-        addToast({ type: 'success', message: 'Account created (Development Mode)' });
-        router.push('/dashboard');
-        return;
-      }
-      setError(res.error || 'Registration failed');
+      setError(authError?.message || 'Failed to create account');
     }
   };
 

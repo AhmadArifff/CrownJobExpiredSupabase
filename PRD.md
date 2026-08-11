@@ -477,6 +477,22 @@ export default app;  // Vercel wraps Express as serverless function
 
 ## 6. Database Schema Design (Supabase PostgreSQL + Prisma)
 
+### 6.0 Central Database Configuration
+
+Aplikasi ini menggunakan Supabase PostgreSQL sebagai database sentral (menyimpan data User, Config, dan Log). Berikut adalah konfigurasi koneksinya menggunakan **Connection Transaction Pooler**:
+
+- **Host**: `aws-0-ap-south-1.pooler.supabase.com`
+- **Port**: `6543`
+- **Database**: `postgres`
+- **User**: `postgres.msqdrtgbdrtobsvypozl`
+- **Password**: `e5Yj.fF-y*FCL/n`
+- **Connection String**: 
+  ```text
+  postgresql://postgres.msqdrtgbdrtobsvypozl:e5Yj.fF-y*FCL/n@aws-0-ap-south-1.pooler.supabase.com:6543/postgres
+  ```
+
+*(Opsional) Untuk mempermudah integrasi dengan AI Agent, jalankan: `npx skills add supabase/agent-skills`*
+
 ### 6.1 Entity Relationship Diagram
 
 ```

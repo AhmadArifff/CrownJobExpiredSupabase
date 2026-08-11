@@ -110,25 +110,7 @@ export default function ConfigPage() {
         addToast({ type: 'success', message: 'New config saved successfully!' });
         setIsModalOpen(false);
       } else {
-        // Mock fallback create for demonstration
-        const newMock: SupabaseConfigDTO = {
-          id: 'cfg_' + Date.now(),
-          userId: 'usr_demo',
-          accountEmail,
-          databaseName,
-          supabaseUrl,
-          supabaseAnonKeyMasked: supabaseAnonKey.slice(0, 10) + '...',
-          supabaseServiceRoleKeyMasked: supabaseServiceRoleKey.slice(0, 10) + '...',
-          status: 'untested',
-          isTableGenerated: false,
-          lastInteraction: null,
-          lastPingStatus: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        addConfig(newMock);
-        addToast({ type: 'success', message: 'Config saved!' });
-        setIsModalOpen(false);
+        setFormError(res.error || 'Failed to save config');
       }
     }
   };

@@ -42,22 +42,8 @@ export default function CronJobPage() {
     if (res.isSuccess) {
       setTableData(res.getValue());
     } else {
-      // Mock rows for initial frontend demonstration
-      const mockRows: KeepAliveDataRow[] = [
-        {
-          id: 101,
-          pingMessage: 'keepalive-auto-2026-08-10T10:00:00Z',
-          createdBy: 'Vercel Cron Service',
-          createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        },
-        {
-          id: 100,
-          pingMessage: 'keepalive-manual-2026-08-08T15:30:00Z',
-          createdBy: 'User Manual Trigger',
-          createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-        },
-      ];
-      setTableData(mockRows);
+      setTableData([]);
+      addToast({ type: 'error', message: res.error || 'Failed to fetch table data' });
     }
   };
 

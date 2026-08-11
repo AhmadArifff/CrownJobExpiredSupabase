@@ -3,11 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { History, Search, CheckCircle2, XCircle, Filter, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useUIStore } from '@/stores/useUIStore';
 import { ActivityLogDTO } from '@cronjob/shared';
 
 export default function LogsPage() {
   const [logs, setLogs] = useState<ActivityLogDTO[]>([]);
   const [loading, setLoading] = useState(false);
+  const addToast = useUIStore((state) => state.addToast);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAction, setFilterAction] = useState('all');
 
@@ -23,40 +25,8 @@ export default function LogsPage() {
     if (res.isSuccess) {
       setLogs(res.getValue());
     } else {
-      // Mock logs for demonstration
-      const mockLogs: ActivityLogDTO[] = [
-        {
-          id: 'log_1',
-          userId: 'usr_demo',
-          configId: 'cfg_1',
-          accountName: 'Production Analytics DB',
-          action: 'auto_ping',
-          status: 'success',
-          message: 'Automated Vercel Cron ping executed successfully',
-          createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        },
-        {
-          id: 'log_2',
-          userId: 'usr_demo',
-          configId: 'cfg_1',
-          accountName: 'Production Analytics DB',
-          action: 'generate_table',
-          status: 'success',
-          message: 'Table cronjob_keepalive auto-generated',
-          createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        },
-        {
-          id: 'log_3',
-          userId: 'usr_demo',
-          configId: 'cfg_2',
-          accountName: 'Staging Microservice DB',
-          action: 'insert',
-          status: 'success',
-          message: 'Manual keep-alive ping inserted',
-          createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-        },
-      ];
-      setLogs(mockLogs);
+      setLogs([]);
+      addToast({ type: 'error', message: res.error || 'Failed to fetch logs' });
     }
   };
 
