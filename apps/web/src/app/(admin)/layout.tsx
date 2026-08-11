@@ -35,16 +35,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [isAuthenticated, router, mounted]);
 
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) return null;
-
   const navItems = [
     { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Supabase Configs', href: '/config', icon: Settings },
@@ -52,9 +42,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: 'Activity Logs', href: '/logs', icon: History },
   ];
 
+  const isVisible = mounted && isAuthenticated;
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex">
-      {/* Mobile Sidebar Backdrop */}
+    <>
+      {!isVisible && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+          <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
+      <div
+        className={`min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex ${
+          !isVisible ? 'hidden' : ''
+        }`}
+      >
+        {/* Mobile Sidebar Backdrop */}
       {isSidebarOpen && (
         <div
           onClick={toggleSidebar}
