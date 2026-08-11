@@ -16,6 +16,8 @@ export default function CronJobPage() {
   const [loadingData, setLoadingData] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
   const [pinging, setPinging] = useState(false);
+  const [generatingSql, setGeneratingSql] = useState(false);
+  const [sqlScript, setSqlScript] = useState<string | null>(null);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
 
   useEffect(() => {
@@ -50,6 +52,7 @@ export default function CronJobPage() {
   const handleTestConnection = async () => {
     if (!selectedConfigId) return;
     setTestingConnection(true);
+    setSqlScript(null); // hide SQL box if re-testing
     const res = await api.post<{ isTableGenerated: boolean; message: string }>(
       `/configs/${selectedConfigId}/test-connection`
     );
@@ -65,10 +68,22 @@ export default function CronJobPage() {
     } else {
       addToast({
         type: 'error',
-        message: res.error || 'Connection or auto table creation failed.',
-        actionLabel: 'Retry',
-        onAction: handleTestConnection,
+        message: res.error || 'Connection failed or Table Missing.',
       });
+    }
+  };
+
+  const handleGenerateTable = async () => {
+    if (!selectedConfigId) return;
+    setGeneratingSql(true);
+    const res = await api.post<{ sql: string; message: string }>(`/cronjob/${selectedConfigId}/generate-table`);
+    setGeneratingSql(false);
+
+    if (res.isSuccess) {
+      setSqlScript(res.getValue().sql);
+      addToast({ type: 'success', message: 'SQL Script generated! Please run it in your Supabase SQL Editor.' });
+    } else {
+      addToast({ type: 'error', message: res.error || 'Failed to generate SQL script' });
     }
   };
 
@@ -174,8 +189,18 @@ export default function CronJobPage() {
             className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2 transition-all disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${testingConnection ? 'animate-spin' : ''}`} />
-            {testingConnection ? 'Testing...' : 'Test & Auto-Gen Table'}
+            {testingConnection ? 'Testing...' : 'Test Connection'}
           </button>
+          {selectedConfig && !selectedConfig.isTableGenerated && (
+            <button
+              onClick={handleGenerateTable}
+              disabled={generatingSql || !selectedConfigId}
+              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-xs font-semibold text-white flex items-center gap-2 shadow-lg shadow-amber-500/25 transition-all disabled:opacity-50"
+            >
+              <Zap className={`w-3.5 h-3.5 ${generatingSql ? 'animate-spin' : ''}`} />
+              Generate SQL
+            </button>
+          )}
           <button
             onClick={handleAddPing}
             disabled={pinging || !selectedConfigId}
@@ -205,6 +230,33 @@ export default function CronJobPage() {
               {selectedConfig.isTableGenerated ? 'Table Ready' : 'Table Missing'}
             </span>
           </div>
+        </div>
+      )}
+
+      {/* SQL Script Box (Visible if generated) */}
+      {sqlScript && (
+        <div className="glass-card p-5 rounded-xl bg-slate-900 border-amber-500/50 border">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold text-white text-sm flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-400" />
+              Action Required: Create Table on Supabase
+            </h3>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(sqlScript);
+                addToast({ type: 'success', message: 'SQL Script copied to clipboard!' });
+              }}
+              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 font-medium transition-colors"
+            >
+              Copy SQL
+            </button>
+          </div>
+          <p className="text-slate-400 text-xs mb-3">
+            To allow Keep-Alive to work, you must execute the following SQL script in your Supabase project's SQL Editor:
+          </p>
+          <pre className="p-4 rounded-lg bg-black/50 text-emerald-400 font-mono text-xs overflow-x-auto border border-slate-800">
+            {sqlScript}
+          </pre>
         </div>
       )}
 

@@ -105,12 +105,13 @@ router.post('/:id/test-connection', async (req: any, res: any) => {
     const { data, error } = await supabase.from('cronjob_keepalive').select('*').limit(1);
 
     if (error) {
-      if (error.code === '42P01') {
+      const errStr = JSON.stringify(error);
+      if (error.code === '42P01' || errStr.includes('Could not find the table') || errStr.includes('does not exist')) {
         // relation "cronjob_keepalive" does not exist
         await prisma.activityLog.create({
           data: { userId: req.user.id, configId: config.id, action: 'health_check', status: 'failed', message: 'Table not found' }
         });
-        return res.status(400).json(Result.fail('Tabel cronjob_keepalive belum dibuat. Silakan klik Generate Table.'));
+        return res.status(400).json(Result.fail('Tabel cronjob_keepalive belum dibuat. Silakan buat menggunakan script SQL.'));
       }
       
       await prisma.activityLog.create({

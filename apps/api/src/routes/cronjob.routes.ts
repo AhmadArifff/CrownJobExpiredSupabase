@@ -55,7 +55,11 @@ router.get('/:configId/data', async (req: any, res: any) => {
       .limit(50);
 
     if (error) {
-      return res.status(400).json(Result.fail(error.message));
+      const errStr = JSON.stringify(error);
+      if (errStr.includes('Could not find the table') || errStr.includes('does not exist')) {
+        return res.status(400).json(Result.fail('Tabel cronjob_keepalive belum dibuat. Silakan buat menggunakan script SQL.'));
+      }
+      return res.status(400).json(Result.fail(error.message || errStr));
     }
 
     const mappedData = data.map((row: any) => ({
@@ -93,10 +97,14 @@ router.post('/:configId/ping', async (req: any, res: any) => {
     ]);
 
     if (insertError) {
+      const errStr = JSON.stringify(insertError);
+      if (errStr.includes('Could not find the table') || errStr.includes('does not exist')) {
+        return res.status(400).json(Result.fail('Tabel cronjob_keepalive belum dibuat. Silakan buat menggunakan script SQL.'));
+      }
       await prisma.activityLog.create({
-        data: { userId: req.user.id, configId: config.id, action: 'insert', status: 'failed', message: insertError.message }
+        data: { userId: req.user.id, configId: config.id, action: 'insert', status: 'failed', message: insertError.message || errStr }
       });
-      return res.status(400).json(Result.fail(`Gagal insert data: ${insertError.message}`));
+      return res.status(400).json(Result.fail(`Gagal insert data: ${insertError.message || errStr}`));
     }
 
     // Update last interaction
