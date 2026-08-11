@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { auth } from '../lib/auth';
 import { Result } from '@cronjob/shared';
+import { createClient } from '@supabase/supabase-js';
 
 const router = Router();
 
@@ -80,6 +81,54 @@ router.delete('/:id', async (req: any, res: any) => {
     });
 
     return res.json(Result.ok({ message: 'Konfigurasi berhasil dihapus' }));
+  } catch (error: any) {
+    return res.status(500).json(Result.fail(error.message));
+  }
+});
+
+// POST /api/configs/:id/test-connection
+router.post('/:id/test-connection', async (req: any, res: any) => {
+  try {
+    const { id } = req.params;
+
+    const config = await prisma.supabaseConfig.findFirst({
+      where: { id, userId: req.user.id },
+    });
+
+    if (!config) {
+      return res.status(404).json(Result.fail('Config not found'));
+    }
+
+    const supabase = createClient(config.supabaseUrl, config.supabaseServiceRoleKey);
+    
+    // Test connection by fetching 1 row from cronjob_keepalive
+    const { data, error } = await supabase.from('cronjob_keepalive').select('*').limit(1);
+
+    if (error) {
+      if (error.code === '42P01') {
+        // relation "cronjob_keepalive" does not exist
+        await prisma.activityLog.create({
+          data: { userId: req.user.id, configId: config.id, action: 'health_check', status: 'failed', message: 'Table not found' }
+        });
+        return res.status(400).json(Result.fail('Tabel cronjob_keepalive belum dibuat. Silakan klik Generate Table.'));
+      }
+      
+      await prisma.activityLog.create({
+        data: { userId: req.user.id, configId: config.id, action: 'health_check', status: 'failed', message: error.message }
+      });
+      return res.status(400).json(Result.fail(error.message));
+    }
+
+    // Update isTableGenerated status to true since it exists
+    await prisma.supabaseConfig.update({
+      where: { id },
+      data: { isTableGenerated: true, status: 'active', lastPingStatus: 'success' }
+    });
+
+    await prisma.activityLog.create({
+      data: { userId: req.user.id, configId: config.id, action: 'health_check', status: 'success', message: 'Connection OK' }
+    });
+    return res.json(Result.ok({ isTableGenerated: true, message: 'Koneksi berhasil dan tabel ditemukan.' }));
   } catch (error: any) {
     return res.status(500).json(Result.fail(error.message));
   }
