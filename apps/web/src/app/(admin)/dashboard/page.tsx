@@ -171,8 +171,8 @@ export default function DashboardPage() {
           <div className="w-16 h-16 rounded-3xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400 mb-6 shadow-xl">
             <Database className="w-8 h-8" />
           </div>
-          <h2 className="text-xl font-bold text-white mb-2">Welcome! Let&apos;s add your first Supabase Config</h2>
-          <p className="text-sm text-slate-400 mb-8 max-w-md leading-relaxed">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Welcome! Let&apos;s add your first Supabase Config</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-md leading-relaxed">
             You don&apos;t have any Supabase accounts configured yet. Add your project connection details to enable automated keep-alive pings.
           </p>
           <Link
@@ -217,7 +217,7 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <div className="text-slate-500 dark:text-slate-400 font-medium">Last Interaction</div>
-                      <div className="text-slate-800 dark:text-slate-200 font-semibold mt-0.5">
+                      <div suppressHydrationWarning className="text-slate-800 dark:text-slate-200 font-semibold mt-0.5">
                         {calculateDaysAgo(cfg.lastInteraction)}
                       </div>
                     </div>

@@ -131,7 +131,7 @@ export default function CronJobPage() {
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <Activity className="w-6 h-6 text-brand-400" /> Keep-Alive Data Operations
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             View, insert, and manage rows in the identical `cronjob_keepalive` target table.
           </p>
         </div>
@@ -222,7 +222,7 @@ export default function CronJobPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-900/60 text-slate-400 uppercase font-semibold border-b border-slate-800">
+            <thead className="bg-slate-100 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 uppercase font-semibold border-b border-slate-200 dark:border-slate-800">
               <tr>
                 <th className="px-6 py-3.5">Row ID</th>
                 <th className="px-6 py-3.5">Ping Message</th>
@@ -242,10 +242,10 @@ export default function CronJobPage() {
                 tableData.map((row) => (
                   <tr key={row.id} className="hover:bg-slate-800/30 transition-colors">
                     <td className="px-6 py-4 font-mono font-semibold text-brand-400">#{row.id}</td>
-                    <td className="px-6 py-4 text-slate-200 font-mono">{row.pingMessage}</td>
-                    <td className="px-6 py-4 text-slate-300">{row.createdBy}</td>
-                    <td className="px-6 py-4 text-slate-400">
-                      {new Date(row.createdAt).toLocaleString()}
+                    <td className="px-6 py-4 text-slate-700 dark:text-slate-200 font-mono">{row.pingMessage}</td>
+                    <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{row.createdBy}</td>
+                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
+                      <span suppressHydrationWarning>{new Date(row.createdAt).toLocaleString()}</span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button

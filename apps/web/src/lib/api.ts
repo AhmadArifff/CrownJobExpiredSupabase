@@ -27,55 +27,63 @@ class ApiClient {
     });
   }
 
+  private handleResponse<T>(res: AxiosResponse<any>): Result<T> {
+    const data = res.data;
+
+    // Handle raw Result serialization format
+    if (data && typeof data.isSuccess === 'boolean') {
+      if (data.isSuccess) {
+        return Result.ok<T>(data._value);
+      }
+      return Result.fail<T>(data.error || 'Operation failed');
+    }
+
+    // Handle ApiResponse format
+    if (data && data.success) {
+      return Result.ok<T>(data.data as T);
+    }
+
+    return Result.fail<T>(data?.error?.message || data?.message || 'Operation failed');
+  }
+
+  private handleError<T>(err: any): Result<T> {
+    const msg = err.response?.data?.error?.message || err.response?.data?.message || err.message || 'Network error';
+    return Result.fail<T>(msg);
+  }
+
   public async get<T>(url: string, params?: Record<string, any>): Promise<Result<T>> {
     try {
-      const res: AxiosResponse<ApiResponse<T>> = await this.client.get(url, { params });
-      if (res.data.success && res.data.data !== undefined) {
-        return Result.ok<T>(res.data.data);
-      }
-      return Result.fail<T>(res.data.error?.message || 'Failed to fetch data');
+      const res = await this.client.get(url, { params });
+      return this.handleResponse<T>(res);
     } catch (err: any) {
-      const msg = err.response?.data?.error?.message || err.message || 'Network error';
-      return Result.fail<T>(msg);
+      return this.handleError<T>(err);
     }
   }
 
   public async post<T>(url: string, data?: any): Promise<Result<T>> {
     try {
-      const res: AxiosResponse<ApiResponse<T>> = await this.client.post(url, data);
-      if (res.data.success && res.data.data !== undefined) {
-        return Result.ok<T>(res.data.data);
-      }
-      return Result.fail<T>(res.data.error?.message || 'Operation failed');
+      const res = await this.client.post(url, data);
+      return this.handleResponse<T>(res);
     } catch (err: any) {
-      const msg = err.response?.data?.error?.message || err.message || 'Network error';
-      return Result.fail<T>(msg);
+      return this.handleError<T>(err);
     }
   }
 
   public async put<T>(url: string, data?: any): Promise<Result<T>> {
     try {
-      const res: AxiosResponse<ApiResponse<T>> = await this.client.put(url, data);
-      if (res.data.success && res.data.data !== undefined) {
-        return Result.ok<T>(res.data.data);
-      }
-      return Result.fail<T>(res.data.error?.message || 'Update failed');
+      const res = await this.client.put(url, data);
+      return this.handleResponse<T>(res);
     } catch (err: any) {
-      const msg = err.response?.data?.error?.message || err.message || 'Network error';
-      return Result.fail<T>(msg);
+      return this.handleError<T>(err);
     }
   }
 
   public async delete<T>(url: string): Promise<Result<T>> {
     try {
-      const res: AxiosResponse<ApiResponse<T>> = await this.client.delete(url);
-      if (res.data.success) {
-        return Result.ok<T>(res.data.data as T);
-      }
-      return Result.fail<T>(res.data.error?.message || 'Delete failed');
+      const res = await this.client.delete(url);
+      return this.handleResponse<T>(res);
     } catch (err: any) {
-      const msg = err.response?.data?.error?.message || err.message || 'Network error';
-      return Result.fail<T>(msg);
+      return this.handleError<T>(err);
     }
   }
 }

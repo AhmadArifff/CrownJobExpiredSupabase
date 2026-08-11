@@ -191,7 +191,7 @@ export default function ConfigPage() {
             </div>
 
             <div className="flex items-center justify-between pt-2">
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-slate-500 dark:text-slate-400" suppressHydrationWarning>
                 Created: {new Date(cfg.createdAt).toLocaleDateString()}
               </span>
               <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
