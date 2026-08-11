@@ -133,7 +133,7 @@ export default function ConfigPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <Settings className="w-6 h-6 text-brand-400" /> Supabase Configurations
           </h1>
           <p className="text-sm text-slate-400 mt-1">
@@ -155,7 +155,7 @@ export default function ConfigPage() {
             <div>
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
-                  <h3 className="font-bold text-white text-lg">{cfg.databaseName}</h3>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-lg">{cfg.databaseName}</h3>
                   <div className="text-xs text-slate-400 font-mono mt-0.5">{cfg.supabaseUrl}</div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -207,7 +207,7 @@ export default function ConfigPage() {
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
           <div className="w-full max-w-lg glass-panel p-6 rounded-3xl border border-slate-800 shadow-2xl relative animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
-              <h2 className="text-lg font-bold text-white">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                 {editingConfig ? 'Edit Supabase Config' : 'Add Supabase Config'}
               </h2>
               <button

@@ -19,15 +19,15 @@
 
 /* Glassmorphism Utilities */
 .glass-panel {
-  @apply bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 shadow-2xl;
+  @apply bg-white/90 dark:bg-slate-800/60 backdrop-blur-xl border border-slate-200/80 dark:border-slate-700/50 shadow-xl dark:shadow-2xl text-slate-900 dark:text-slate-100;
 }
 
 .glass-card {
-  @apply bg-slate-800/40 backdrop-blur-md border border-slate-700/40 hover:border-brand-500/40 transition-all duration-300;
+  @apply bg-white dark:bg-slate-800/40 backdrop-blur-md border border-slate-200/80 dark:border-slate-700/40 hover:border-brand-500/40 shadow-sm dark:shadow-none transition-all duration-300;
 }
 
 .glass-input {
-  @apply bg-slate-900/60 border border-slate-700/60 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all;
+  @apply bg-white dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700/60 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all;
 }
 
 /* Custom Scrollbar */

@@ -43,7 +43,7 @@ export default function LogsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <History className="w-6 h-6 text-brand-400" /> Activity Audit Logs
           </h1>
           <p className="text-sm text-slate-400 mt-1">
@@ -113,7 +113,7 @@ export default function LogsPage() {
                     <td className="px-6 py-4 text-slate-400 font-mono">
                       {new Date(log.createdAt).toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 font-semibold text-white">
+                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
                       {log.accountName || 'System'}
                     </td>
                     <td className="px-6 py-4">

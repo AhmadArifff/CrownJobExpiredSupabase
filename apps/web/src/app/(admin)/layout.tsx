@@ -116,11 +116,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="p-4 border-t border-slate-200 dark:border-slate-800/80">
           <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/40 mb-3">
             <div className="w-9 h-9 rounded-full bg-brand-500/10 dark:bg-brand-500/20 border border-brand-500/20 dark:border-brand-500/30 flex items-center justify-center text-brand-500 dark:text-brand-400 font-bold text-sm">
-              {user?.name ? user.name[0].toUpperCase() : 'U'}
+              {mounted && user?.name ? user.name[0].toUpperCase() : 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-slate-900 dark:text-white truncate">{user?.name || 'User'}</div>
-              <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.email}</div>
+              <div className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                {mounted && user?.name ? user.name : 'User'}
+              </div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                {mounted && user?.email ? user.email : ''}
+              </div>
             </div>
           </div>
 

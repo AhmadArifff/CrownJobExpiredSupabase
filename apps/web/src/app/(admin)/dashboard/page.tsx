@@ -110,8 +110,8 @@ export default function DashboardPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight">Dashboard Overview</h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Dashboard Overview</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             Monitor and manage your configured Supabase databases keep-alive status.
           </p>
         </div>
@@ -128,39 +128,39 @@ export default function DashboardPage() {
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div className="glass-card p-5 rounded-2xl">
-          <div className="flex items-center justify-between text-slate-400 mb-3">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-3">
             <span className="text-xs font-semibold uppercase tracking-wider">Total Accounts</span>
-            <Database className="w-5 h-5 text-brand-400" />
+            <Database className="w-5 h-5 text-brand-500 dark:text-brand-400" />
           </div>
-          <div className="text-3xl font-bold text-white">{total}</div>
-          <div className="text-xs text-slate-400 mt-1">Configured Supabase DBs</div>
+          <div className="text-3xl font-bold text-slate-900 dark:text-white">{total}</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">Configured Supabase DBs</div>
         </div>
 
         <div className="glass-card p-5 rounded-2xl">
-          <div className="flex items-center justify-between text-slate-400 mb-3">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-3">
             <span className="text-xs font-semibold uppercase tracking-wider">Active</span>
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            <CheckCircle2 className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
           </div>
-          <div className="text-3xl font-bold text-emerald-400">{activeCount}</div>
-          <div className="text-xs text-slate-400 mt-1">Pinged within 4 days</div>
+          <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{activeCount}</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">Pinged within 4 days</div>
         </div>
 
         <div className="glass-card p-5 rounded-2xl">
-          <div className="flex items-center justify-between text-slate-400 mb-3">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-3">
             <span className="text-xs font-semibold uppercase tracking-wider">Warning</span>
-            <AlertTriangle className="w-5 h-5 text-amber-400" />
+            <AlertTriangle className="w-5 h-5 text-amber-500 dark:text-amber-400" />
           </div>
-          <div className="text-3xl font-bold text-amber-400">{warningCount}</div>
-          <div className="text-xs text-slate-400 mt-1">Inactive &gt; 5 days</div>
+          <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">{warningCount}</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">Inactive &gt; 5 days</div>
         </div>
 
         <div className="glass-card p-5 rounded-2xl">
-          <div className="flex items-center justify-between text-slate-400 mb-3">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-3">
             <span className="text-xs font-semibold uppercase tracking-wider">Danger</span>
-            <XCircle className="w-5 h-5 text-rose-400" />
+            <XCircle className="w-5 h-5 text-rose-500 dark:text-rose-400" />
           </div>
-          <div className="text-3xl font-bold text-rose-400">{dangerCount}</div>
-          <div className="text-xs text-slate-400 mt-1">Critical (&gt; 6 days)</div>
+          <div className="text-3xl font-bold text-rose-600 dark:text-rose-400">{dangerCount}</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">Critical (&gt; 6 days)</div>
         </div>
       </div>
 
@@ -185,8 +185,8 @@ export default function DashboardPage() {
       ) : (
         /* Account Cards List */
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-brand-400" /> Your Configured Supabase Projects
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-brand-500 dark:text-brand-400" /> Your Configured Supabase Projects
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {configs.map((cfg) => (
@@ -194,30 +194,30 @@ export default function DashboardPage() {
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div>
-                      <h3 className="font-bold text-white text-lg">{cfg.databaseName}</h3>
-                      <div className="text-xs text-slate-400 font-mono mt-0.5">{cfg.supabaseUrl}</div>
+                      <h3 className="font-bold text-slate-900 dark:text-white text-lg">{cfg.databaseName}</h3>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">{cfg.supabaseUrl}</div>
                     </div>
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
                         cfg.status === 'active'
-                          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
                           : cfg.status === 'warning'
-                          ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-                          : 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                          ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
+                          : 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
                       }`}
                     >
                       {cfg.status}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 py-3 my-3 border-y border-slate-800/80 text-xs">
+                  <div className="grid grid-cols-2 gap-4 py-3 my-3 border-y border-slate-200 dark:border-slate-800/80 text-xs">
                     <div>
-                      <div className="text-slate-400 font-medium">Account Email</div>
-                      <div className="text-slate-200 font-semibold truncate mt-0.5">{cfg.accountEmail}</div>
+                      <div className="text-slate-500 dark:text-slate-400 font-medium">Account Email</div>
+                      <div className="text-slate-800 dark:text-slate-200 font-semibold truncate mt-0.5">{cfg.accountEmail}</div>
                     </div>
                     <div>
-                      <div className="text-slate-400 font-medium">Last Interaction</div>
-                      <div className="text-slate-200 font-semibold mt-0.5">
+                      <div className="text-slate-500 dark:text-slate-400 font-medium">Last Interaction</div>
+                      <div className="text-slate-800 dark:text-slate-200 font-semibold mt-0.5">
                         {calculateDaysAgo(cfg.lastInteraction)}
                       </div>
                     </div>
@@ -225,14 +225,14 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="flex items-center justify-between mt-4">
-                  <div className="flex items-center gap-2 text-xs text-slate-400">
-                    <Zap className="w-4 h-4 text-brand-400" />
+                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <Zap className="w-4 h-4 text-brand-500 dark:text-brand-400" />
                     <span>Table Ready: {cfg.isTableGenerated ? 'Yes' : 'No'}</span>
                   </div>
                   <button
                     onClick={() => handlePingNow(cfg.id)}
                     disabled={pingingId === cfg.id}
-                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-white flex items-center gap-2 transition-all disabled:opacity-50"
+                    className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-white flex items-center gap-2 transition-all disabled:opacity-50"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${pingingId === cfg.id ? 'animate-spin' : ''}`} />
                     {pingingId === cfg.id ? 'Pinging...' : 'Ping Now'}

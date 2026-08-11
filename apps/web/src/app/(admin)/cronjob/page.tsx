@@ -128,7 +128,7 @@ export default function CronJobPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <Activity className="w-6 h-6 text-brand-400" /> Keep-Alive Data Operations
           </h1>
           <p className="text-sm text-slate-400 mt-1">
@@ -211,7 +211,7 @@ export default function CronJobPage() {
       {/* Data Table */}
       <div className="glass-panel rounded-2xl overflow-hidden border border-slate-800">
         <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-          <h3 className="font-bold text-white text-sm">Remote Table Rows</h3>
+          <h3 className="font-bold text-slate-900 dark:text-white text-sm">Remote Table Rows</h3>
           <button
             onClick={() => selectedConfigId && loadTableData(selectedConfigId)}
             className="text-xs text-slate-400 hover:text-white flex items-center gap-1.5"
