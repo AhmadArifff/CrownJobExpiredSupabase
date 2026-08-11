@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Activity, RefreshCw, Zap, Trash2, Plus, CheckCircle2, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Activity, RefreshCw, Zap, Trash2, Plus, CheckCircle2, AlertTriangle, ShieldCheck, Database } from 'lucide-react';
 import { useConfigStore } from '@/stores/useConfigStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { api } from '@/lib/api';
@@ -15,9 +15,8 @@ export default function CronJobPage() {
   const [tableData, setTableData] = useState<KeepAliveDataRow[]>([]);
   const [loadingData, setLoadingData] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
+  const [generatingTable, setGeneratingTable] = useState(false);
   const [pinging, setPinging] = useState(false);
-  const [generatingSql, setGeneratingSql] = useState(false);
-  const [sqlScript, setSqlScript] = useState<string | null>(null);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
 
   useEffect(() => {
@@ -45,45 +44,57 @@ export default function CronJobPage() {
       setTableData(res.getValue());
     } else {
       setTableData([]);
-      addToast({ type: 'error', message: res.error || 'Failed to fetch table data' });
+      // Don't show toast for table-not-found on initial load
+      if (!res.error?.includes('belum dibuat')) {
+        addToast({ type: 'error', message: res.error || 'Failed to fetch table data' });
+      }
     }
   };
 
+  // PRD US-3.1: Test Connection + Auto Table Check/Generate (primary action)
   const handleTestConnection = async () => {
     if (!selectedConfigId) return;
     setTestingConnection(true);
-    setSqlScript(null); // hide SQL box if re-testing
     const res = await api.post<{ isTableGenerated: boolean; message: string }>(
       `/configs/${selectedConfigId}/test-connection`
     );
     setTestingConnection(false);
 
     if (res.isSuccess) {
+      const result = res.getValue();
       addToast({
         type: 'success',
-        message: 'Connection OK! Keep-Alive table ready on target Supabase DB.',
+        message: result.message || 'Connection OK!',
       });
       fetchUserConfigs();
       loadTableData(selectedConfigId);
     } else {
       addToast({
         type: 'error',
-        message: res.error || 'Connection failed or Table Missing.',
+        message: res.error || 'Connection or table creation failed.',
       });
     }
   };
 
+  // PRD US-3.2: Manual Generate Table (fallback)
   const handleGenerateTable = async () => {
     if (!selectedConfigId) return;
-    setGeneratingSql(true);
-    const res = await api.post<{ sql: string; message: string }>(`/cronjob/${selectedConfigId}/generate-table`);
-    setGeneratingSql(false);
+    setGeneratingTable(true);
+    const res = await api.post<{ isTableGenerated: boolean; message: string }>(
+      `/cronjob/${selectedConfigId}/generate-table`
+    );
+    setGeneratingTable(false);
 
     if (res.isSuccess) {
-      setSqlScript(res.getValue().sql);
-      addToast({ type: 'success', message: 'SQL Script generated! Please run it in your Supabase SQL Editor.' });
+      const result = res.getValue();
+      addToast({
+        type: 'success',
+        message: result.message || 'Table created successfully!',
+      });
+      fetchUserConfigs();
+      loadTableData(selectedConfigId);
     } else {
-      addToast({ type: 'error', message: res.error || 'Failed to generate SQL script' });
+      addToast({ type: 'error', message: res.error || 'Failed to create table' });
     }
   };
 
@@ -189,16 +200,16 @@ export default function CronJobPage() {
             className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2 transition-all disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${testingConnection ? 'animate-spin' : ''}`} />
-            {testingConnection ? 'Testing...' : 'Test Connection'}
+            {testingConnection ? 'Connecting...' : 'Test & Auto-Gen Table'}
           </button>
           {selectedConfig && !selectedConfig.isTableGenerated && (
             <button
               onClick={handleGenerateTable}
-              disabled={generatingSql || !selectedConfigId}
+              disabled={generatingTable || !selectedConfigId}
               className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-xs font-semibold text-white flex items-center gap-2 shadow-lg shadow-amber-500/25 transition-all disabled:opacity-50"
             >
-              <Zap className={`w-3.5 h-3.5 ${generatingSql ? 'animate-spin' : ''}`} />
-              Generate SQL
+              <Database className={`w-3.5 h-3.5 ${generatingTable ? 'animate-spin' : ''}`} />
+              {generatingTable ? 'Migrating...' : 'Generate Table'}
             </button>
           )}
           <button
@@ -233,33 +244,6 @@ export default function CronJobPage() {
         </div>
       )}
 
-      {/* SQL Script Box (Visible if generated) */}
-      {sqlScript && (
-        <div className="glass-card p-5 rounded-xl bg-slate-900 border-amber-500/50 border">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-white text-sm flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-400" />
-              Action Required: Create Table on Supabase
-            </h3>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(sqlScript);
-                addToast({ type: 'success', message: 'SQL Script copied to clipboard!' });
-              }}
-              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 font-medium transition-colors"
-            >
-              Copy SQL
-            </button>
-          </div>
-          <p className="text-slate-400 text-xs mb-3">
-            To allow Keep-Alive to work, you must execute the following SQL script in your Supabase project's SQL Editor:
-          </p>
-          <pre className="p-4 rounded-lg bg-black/50 text-emerald-400 font-mono text-xs overflow-x-auto border border-slate-800">
-            {sqlScript}
-          </pre>
-        </div>
-      )}
-
       {/* Data Table */}
       <div className="glass-panel rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
         <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
@@ -283,7 +267,7 @@ export default function CronJobPage() {
                 <th className="px-6 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
               {tableData.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
@@ -292,7 +276,7 @@ export default function CronJobPage() {
                 </tr>
               ) : (
                 tableData.map((row) => (
-                  <tr key={row.id} className="hover:bg-slate-800/30 transition-colors">
+                  <tr key={row.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                     <td className="px-6 py-4 font-mono font-semibold text-brand-400">#{row.id}</td>
                     <td className="px-6 py-4 text-slate-700 dark:text-slate-200 font-mono">{row.pingMessage}</td>
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{row.createdBy}</td>
