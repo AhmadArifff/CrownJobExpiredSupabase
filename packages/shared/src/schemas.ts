@@ -18,12 +18,22 @@ export const createConfigSchema = z.object({
     .string()
     .url('Must be a valid URL')
     .regex(/^https:\/\/[a-z0-9-]+\.supabase\.co$/, 'Must be a valid Supabase URL (e.g. https://xxx.supabase.co)'),
+  websiteUrl: z
+    .string()
+    .url('Must be a valid URL (e.g. https://mywebsite.com)')
+    .or(z.literal(''))
+    .optional(),
   supabaseAnonKey: z
     .string()
     .min(1, 'Anon Key is required'),
   supabaseServiceRoleKey: z
     .string()
     .min(1, 'Service Role Key is required'),
+  poolerUrl: z
+    .string()
+    .url('Must be a valid URL or host format (e.g. aws-0-ap-southeast-1.pooler.supabase.com)')
+    .or(z.literal(''))
+    .optional(),
 });
 
 export const updateConfigSchema = createConfigSchema.partial();

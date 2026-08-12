@@ -12,6 +12,8 @@ import {
   Zap,
   ArrowRight,
   ShieldCheck,
+  Globe,
+  ExternalLink,
 } from 'lucide-react';
 import { useConfigStore } from '@/stores/useConfigStore';
 import { useUIStore } from '@/stores/useUIStore';
@@ -43,8 +45,8 @@ export default function DashboardPage() {
           accountEmail: 'dev.team@company.com',
           databaseName: 'Production Analytics DB',
           supabaseUrl: 'https://xyzprod.supabase.co',
-          supabaseAnonKeyMasked: 'eyJhbGciOi...XXXXX',
-          supabaseServiceRoleKeyMasked: 'eyJhbGciOi...YYYYY',
+          supabaseAnonKey: 'eyJhbGciOi...XXXXX',
+          supabaseServiceRoleKey: 'eyJhbGciOi...YYYYY',
           status: 'active',
           isTableGenerated: true,
           lastInteraction: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -58,8 +60,8 @@ export default function DashboardPage() {
           accountEmail: 'dev.team@company.com',
           databaseName: 'Staging Microservice DB',
           supabaseUrl: 'https://abcstag.supabase.co',
-          supabaseAnonKeyMasked: 'eyJhbGciOi...ZZZZZ',
-          supabaseServiceRoleKeyMasked: 'eyJhbGciOi...WWWWW',
+          supabaseAnonKey: 'eyJhbGciOi...ZZZZZ',
+          supabaseServiceRoleKey: 'eyJhbGciOi...WWWWW',
           status: 'warning',
           isTableGenerated: true,
           lastInteraction: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
@@ -222,6 +224,23 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   </div>
+
+                  {cfg.websiteUrl && (
+                    <div className="mb-3 flex items-center justify-between text-xs p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800">
+                      <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
+                        <Globe className="w-3.5 h-3.5 text-brand-500" /> App Website:
+                      </span>
+                      <a
+                        href={cfg.websiteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1 truncate max-w-[180px]"
+                      >
+                        <span className="truncate">{cfg.websiteUrl}</span>
+                        <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                      </a>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between mt-4">

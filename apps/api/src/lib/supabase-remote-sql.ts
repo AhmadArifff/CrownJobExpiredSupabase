@@ -33,6 +33,11 @@ BEGIN
   END IF;
 END $$;
 
+-- Explicitly grant permissions so PostgREST API roles can access the table
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON TABLE public.cronjob_keepalive TO anon, authenticated, service_role;
+GRANT ALL ON SEQUENCE public.cronjob_keepalive_id_seq TO anon, authenticated, service_role;
+
 NOTIFY pgrst, 'reload schema';
 `.trim();
 
@@ -51,15 +56,38 @@ function extractRef(supabaseUrl: string): string {
 export async function executeRemoteSQL(
   supabaseUrl: string,
   databasePassword: string,
-  sql: string
+  sql: string,
+  poolerUrl?: string | null
 ): Promise<{ success: boolean; data?: any; error?: string }> {
   const ref = extractRef(supabaseUrl);
 
+  let host = `db.${ref}.supabase.co`;
+  let port = 5432;
+  let user = 'postgres';
+
+  if (poolerUrl) {
+    try {
+      // Allow user to provide a full URL or just the host.
+      // If they provide host like aws-0-ap-southeast-1.pooler.supabase.com
+      if (!poolerUrl.includes('://')) {
+        host = poolerUrl;
+        user = `postgres.${ref}`;
+      } else {
+        const parsed = new URL(poolerUrl);
+        host = parsed.hostname;
+        port = parseInt(parsed.port) || 5432;
+        user = parsed.username || `postgres.${ref}`;
+      }
+    } catch (e) {
+      // Fallback
+    }
+  }
+
   const client = new Client({
-    host: `db.${ref}.supabase.co`,
-    port: 5432,
+    host,
+    port,
     database: 'postgres',
-    user: 'postgres',
+    user,
     password: databasePassword,
     ssl: { rejectUnauthorized: false },
     connectionTimeoutMillis: 10000,
@@ -85,9 +113,10 @@ export async function executeRemoteSQL(
  */
 export async function migrateKeepAliveTable(
   supabaseUrl: string,
-  databasePassword: string
+  databasePassword: string,
+  poolerUrl?: string | null
 ): Promise<{ success: boolean; error?: string }> {
-  const result = await executeRemoteSQL(supabaseUrl, databasePassword, MIGRATION_SQL);
+  const result = await executeRemoteSQL(supabaseUrl, databasePassword, MIGRATION_SQL, poolerUrl);
 
   if (!result.success) {
     return { success: false, error: result.error };

@@ -971,6 +971,30 @@ export const bulkDeleteSchema = z.object({
 - **And** tampilkan Toast "Config deleted" dengan tombol **"Undo"** (jika diklik dalam 5 detik, batalkan/restore data).
 - **And** activity logs terkait tetap tersimpan (configId set null)
 
+#### US-2.5: Associated App Website URL & Live Health Testing
+**As a** user,
+**I want to** memproses dan menyimpan URL website aplikasi yang terhubung ke database Supabase,
+**So that** saya bisa membuka website langsung lewat link dan menguji status aksesibilitas websitenya.
+
+**Acceptance Criteria:**
+- **Given** user menambah/mengedit konfigurasi Supabase
+- **When** input field `App Website URL` diisi (opsional)
+- **Then** data disimpan di `websiteUrl` pada database
+- **And** tampilkan link `Open Website ↗` yang dapat diklik untuk membuka website di tab baru
+- **And** tampilkan tombol `Test Website Access` yang memanggil `POST /api/configs/:id/test-website` untuk menguji respon HTTP website secara live.
+
+#### US-2.6: Global Light Mode & Dark Mode Theme Switcher
+**As a** user,
+**I want to** mengubah mode tampilan (Light / Dark mode) di seluruh halaman aplikasi (Landing Page, Login, Register, dan Admin Panel),
+**So that** pengalaman penggunaan konsisten, nyaman di mata, dan fleksibel di setiap kondisi pencahayaan.
+
+**Acceptance Criteria:**
+- **Given** user berada di halaman publik (Landing Page, Login, Register) maupun Admin Panel
+- **When** user menekan tombol `ThemeToggle` (ikon Matahari / Bulan) pada Navbar / Header
+- **Then** tema aplikasi berganti antara Light Mode dan Dark Mode secara halus (*smooth transition*)
+- **And** semua komponen (Navbar, Card, Text, Button, Table, Badge, Footer) menyesuaikan skema warna secara dinamis tanpa kontras yang buruk
+- **And** pilihan tema tersimpan di *Local Storage* pengguna melalui `next-themes`.
+
 #### US-2.4: Lihat Daftar Konfigurasi (Data Isolation)
 **As a** user,
 **I want to** melihat HANYA konfigurasi Supabase yang saya buat sendiri,
@@ -1809,6 +1833,22 @@ async testConnectionAndCheckTable(config: SupabaseConfig): Promise<Result<Connec
   }
 }
 ```
+
+---
+
+### Clarification on Supabase Config Business Rules & Validation
+Terdapat miskonsepsi mengenai batasan "Maksimal 2 Config". Aturan yang benar adalah:
+- **Bukan per user sistem**: Seorang user di sistem (admin) dapat memiliki konfigurasi Supabase tanpa batas *secara keseluruhan*.
+- **Tetapi per Akun/Email Supabase**: Batasan maksimal 2 konfigurasi diberlakukan HANYA untuk satu entitas `accountEmail` (Email akun Supabase) yang sama.
+- Validasi ini harus diterapkan pada API (saat `POST /api/configs`) dengan melakukan pengecekan `COUNT()` berdasarkan `userId` DAN `accountEmail`, bukan hanya `userId`. Hal ini memastikan bahwa satu akun email Supabase (yang biasanya dibatasi 2 project di Free Tier) tidak dapat di-input lebih dari 2 kali.
+
+---
+
+### Architectural Note: Supabase IPv6 Direct Connection Deprecation
+**Issue:** `ENOTFOUND` during `Generate Table` / Remote SQL Execution.
+**Context:** Supabase deprecated IPv4 support for direct database connections (`db.[project-ref].supabase.co`). Koneksi langsung via node-postgres (pg) menggunakan port 5432 akan gagal pada lingkungan jaringan (seperti beberapa ISP lokal atau VM) yang tidak mendukung IPv6, karena DNS gagal melakukan resolve (ENOTFOUND).
+**Namun,** aksi `Test Connection` / `Ping` tetap berhasil karena menggunakan REST API (`https://[ref].supabase.co`) yang di-routing melalui Cloudflare (mendukung IPv4).
+**Solution Applied:** Entitas `SupabaseConfig` telah diperbarui dengan field tambahan `poolerUrl` (Connection Pooler URL). Pooler Supabase (mis. `aws-0-[region].pooler.supabase.com`) masih mendukung IPv4. Jika user mengalami `ENOTFOUND` saat menekan tombol "Generate Table", user diinstruksikan untuk memasukkan Connection Pooler URL di form konfigurasi. Sistem backend secara otomatis akan mendeteksi `poolerUrl` (jika ada) untuk mengubah jalur koneksi DDL dan eksekusi skrip migrasi, menjamin kompatibilitas penuh dengan jaringan IPv4.
 
 ---
 

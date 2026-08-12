@@ -169,7 +169,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </button>
 
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 glass-card p-4 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 z-50 animate-in fade-in slide-in-from-top-2">
+                <div className="absolute -right-20 sm:right-0 mt-2 w-[300px] sm:w-80 glass-card p-4 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 z-50 animate-in fade-in slide-in-from-top-2">
                   <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-3">
                     <span className="font-bold text-xs uppercase tracking-wider text-slate-800 dark:text-slate-200">
                       Notifications & Alerts
@@ -199,7 +199,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-6 max-w-7xl mx-auto w-full">{children}</main>
+        <main className="flex-1 p-4 sm:p-6 max-w-7xl mx-auto w-full min-w-0 overflow-x-hidden">{children}</main>
       </div>
     </div>
     </>

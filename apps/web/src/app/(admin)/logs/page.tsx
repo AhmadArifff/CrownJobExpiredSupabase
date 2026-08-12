@@ -88,56 +88,69 @@ export default function LogsPage() {
       </div>
 
       {/* Logs Table */}
-      <div className="glass-panel rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-100/80 dark:bg-slate-900/60 text-slate-700 dark:text-slate-400 uppercase font-semibold border-b border-slate-200 dark:border-slate-800">
-              <tr>
-                <th className="px-6 py-3.5">Timestamp</th>
-                <th className="px-6 py-3.5">Account / DB</th>
-                <th className="px-6 py-3.5">Action</th>
-                <th className="px-6 py-3.5">Status</th>
-                <th className="px-6 py-3.5">Details</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
-              {filteredLogs.length === 0 ? (
+      <div className="glass-panel rounded-2xl w-full overflow-hidden border border-slate-200 dark:border-slate-800">
+        <div className="overflow-x-auto w-full">
+          <div className="min-w-[700px]">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-100/80 dark:bg-slate-900/60 text-slate-700 dark:text-slate-400 uppercase font-semibold border-b border-slate-200 dark:border-slate-800">
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
-                    No activity logs found.
-                  </td>
+                  <th className="px-6 py-3.5">Timestamp</th>
+                  <th className="px-6 py-3.5">Account / DB</th>
+                  <th className="px-6 py-3.5">Action</th>
+                  <th className="px-6 py-3.5">Status</th>
+                  <th className="px-6 py-3.5">Details</th>
                 </tr>
-              ) : (
-                filteredLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-100/50 dark:hover:bg-slate-800/30 transition-colors">
-                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400 font-mono">
-                      <span suppressHydrationWarning>{new Date(log.createdAt).toLocaleString()}</span>
+              </thead>
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-12 text-center">
+                      <div className="flex flex-col items-center justify-center gap-3">
+                        <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-slate-500 dark:text-slate-400 font-medium animate-pulse text-sm">Loading activity logs...</span>
+                      </div>
                     </td>
-                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
-                      {log.accountName || 'System'}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-mono">
-                        {log.action}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      {log.status === 'success' ? (
-                        <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
-                          <CheckCircle2 className="w-4 h-4" /> Success
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1.5 text-rose-400 font-semibold">
-                          <XCircle className="w-4 h-4" /> Failed
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-slate-700 dark:text-slate-300">{log.message || '-'}</td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : filteredLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
+                      No activity logs found.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredLogs.map((log) => (
+                    <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                      <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
+                        <span suppressHydrationWarning>{new Date(log.createdAt).toLocaleString()}</span>
+                      </td>
+                      <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                        {log.accountName || <span className="text-slate-400 italic">System</span>}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                          {log.action}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {log.status === 'success' ? (
+                          <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Success
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 text-xs font-semibold">
+                            <XCircle className="w-3.5 h-3.5" /> Failed
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-slate-600 dark:text-slate-400 line-clamp-2 max-w-sm">
+                        {log.message}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

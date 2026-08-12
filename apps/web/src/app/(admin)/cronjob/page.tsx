@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Activity, RefreshCw, Zap, Trash2, Plus, CheckCircle2, AlertTriangle, ShieldCheck, Database, Bell } from 'lucide-react';
+import { Activity, RefreshCw, Zap, Trash2, Plus, CheckCircle2, AlertTriangle, ShieldCheck, Database, Bell, Globe, ExternalLink } from 'lucide-react';
 import { useConfigStore } from '@/stores/useConfigStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { api } from '@/lib/api';
@@ -18,6 +18,7 @@ export default function CronJobPage() {
   const [generatingTable, setGeneratingTable] = useState(false);
   const [pinging, setPinging] = useState(false);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
+  const [testingWebsite, setTestingWebsite] = useState(false);
 
   useEffect(() => {
     fetchUserConfigs();
@@ -145,6 +146,19 @@ export default function CronJobPage() {
         actionLabel: 'Retry',
         onAction: handlePingAll,
       });
+    }
+  };
+
+  const handleTestWebsite = async () => {
+    if (!selectedConfig || !selectedConfig.websiteUrl) return;
+    setTestingWebsite(true);
+    const res = await api.post<{ message: string }>(`/configs/${selectedConfig.id}/test-website`);
+    setTestingWebsite(false);
+
+    if (res.isSuccess) {
+      addToast({ type: 'success', message: res.getValue().message || 'Website reachable!' });
+    } else {
+      addToast({ type: 'error', message: res.error || 'Website health check failed' });
     }
   };
 
@@ -287,11 +301,11 @@ export default function CronJobPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
             <button
               onClick={handleAddPing}
               disabled={pinging}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5 ${
+              className={`w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5 ${
                 latestRemaining && latestRemaining.totalHours <= 24
                   ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-600/30'
                   : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30'
@@ -326,11 +340,11 @@ export default function CronJobPage() {
           </select>
         </div>
 
-        <div className="flex items-center gap-3 self-end md:self-auto">
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
           <button
             onClick={handleTestConnection}
             disabled={testingConnection || !selectedConfigId}
-            className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2 transition-all disabled:opacity-50"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${testingConnection ? 'animate-spin' : ''}`} />
             {testingConnection ? 'Connecting...' : 'Test & Auto-Gen Table'}
@@ -339,7 +353,7 @@ export default function CronJobPage() {
             <button
               onClick={handleGenerateTable}
               disabled={generatingTable || !selectedConfigId}
-              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-xs font-semibold text-white flex items-center gap-2 shadow-lg shadow-amber-500/25 transition-all disabled:opacity-50"
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-xs font-semibold text-white flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 transition-all disabled:opacity-50"
             >
               <Database className={`w-3.5 h-3.5 ${generatingTable ? 'animate-spin' : ''}`} />
               {generatingTable ? 'Migrating...' : 'Generate Table'}
@@ -348,7 +362,7 @@ export default function CronJobPage() {
           <button
             onClick={handleAddPing}
             disabled={pinging || !selectedConfigId}
-            className="px-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-xs font-semibold text-white flex items-center gap-2 shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-xs font-semibold text-white flex items-center justify-center gap-2 shadow-lg shadow-brand-500/25 transition-all disabled:opacity-50"
           >
             <Plus className="w-3.5 h-3.5" /> Add Keep-Alive Ping
           </button>
@@ -357,12 +371,42 @@ export default function CronJobPage() {
 
       {/* Target Status Banner */}
       {selectedConfig && (
-        <div className="glass-card p-4 rounded-xl flex items-center justify-between text-xs">
-          <div className="flex items-center gap-3">
-            <ShieldCheck className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
-            <span className="text-slate-700 dark:text-slate-300 font-medium">Target Table: <code className="font-mono text-brand-600 dark:text-brand-300">cronjob_keepalive</code></span>
+        <div className="glass-card p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+              <span className="text-slate-700 dark:text-slate-300 font-medium">Target Table: <code className="font-mono text-brand-600 dark:text-brand-300">cronjob_keepalive</code></span>
+            </div>
+
+            {selectedConfig.websiteUrl && (
+              <div className="flex items-center gap-2 pl-3 border-l border-slate-200 dark:border-slate-800">
+                <Globe className="w-3.5 h-3.5 text-brand-500" />
+                <span className="text-slate-600 dark:text-slate-400 font-medium">App Website:</span>
+                <a
+                  href={selectedConfig.websiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-brand-600 dark:text-brand-400 font-bold hover:underline flex items-center gap-1"
+                >
+                  <span>{selectedConfig.websiteUrl}</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            )}
           </div>
+
           <div className="flex items-center gap-3">
+            {selectedConfig.websiteUrl && (
+              <button
+                type="button"
+                onClick={handleTestWebsite}
+                disabled={testingWebsite}
+                className="px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-[11px] font-semibold flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 transition-colors"
+              >
+                <RefreshCw className={`w-3 h-3 text-brand-500 ${testingWebsite ? 'animate-spin' : ''}`} />
+                {testingWebsite ? 'Testing Website...' : 'Test Website Access'}
+              </button>
+            )}
             <span className="text-slate-600 dark:text-slate-400">Status: {selectedConfig.status}</span>
             <span
               className={`px-2.5 py-0.5 rounded-full font-bold uppercase ${
@@ -377,11 +421,19 @@ export default function CronJobPage() {
         </div>
       )}
 
-      {/* Data Table */}
-      <div className="glass-panel rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
-        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h3 className="font-bold text-slate-900 dark:text-white text-sm">Remote Table Rows</h3>
+      {/* Table Section */}
+      <div className="glass-panel p-1 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mt-6 w-full overflow-hidden">
+        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Database className="w-4 h-4 text-brand-500" />
+              Remote Table Rows
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Data directly fetched from `<span className="font-mono text-brand-600 dark:text-brand-400">cronjob_keepalive</span>`.
+            </p>
+          </div>
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
             {latestRemaining && latestRemaining.totalHours <= 24 && (
               <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 rounded-full animate-pulse flex items-center gap-1.5">
                 <AlertTriangle className="w-3 h-3" />
@@ -396,16 +448,17 @@ export default function CronJobPage() {
           </div>
           <button
             onClick={() => selectedConfigId && loadTableData(selectedConfigId)}
-            className="text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white flex items-center gap-1.5"
+            className="text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white flex items-center gap-1.5 ml-auto sm:ml-0"
           >
             <RefreshCw className={`w-3 h-3 ${loadingData ? 'animate-spin' : ''}`} /> Refresh
           </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-100 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 uppercase font-semibold border-b border-slate-200 dark:border-slate-800">
-              <tr>
+        <div className="overflow-x-auto w-full">
+          <div className="min-w-[800px]">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-100 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 uppercase font-semibold border-b border-slate-200 dark:border-slate-800">
+                <tr>
                 <th className="px-6 py-3.5">Row ID</th>
                 <th className="px-6 py-3.5">Ping Message</th>
                 <th className="px-6 py-3.5">Triggered By</th>
@@ -415,7 +468,16 @@ export default function CronJobPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
-              {tableData.length === 0 ? (
+              {loadingData ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-slate-500 dark:text-slate-400 font-medium animate-pulse text-sm">Loading Keep-Alive data...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : tableData.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
                     No keep-alive ping data rows found in this table.
@@ -451,6 +513,7 @@ export default function CronJobPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>

@@ -13,8 +13,11 @@ export interface SupabaseConfigDTO {
   accountEmail: string;
   databaseName: string;
   supabaseUrl: string;
-  supabaseAnonKeyMasked: string;
-  supabaseServiceRoleKeyMasked: string;
+  websiteUrl?: string | null;
+  supabaseAnonKey: string;
+  supabaseServiceRoleKey: string;
+  databasePassword?: string | null;
+  poolerUrl?: string | null;
   status: ConfigStatus;
   isTableGenerated: boolean;
   lastInteraction: string | null;

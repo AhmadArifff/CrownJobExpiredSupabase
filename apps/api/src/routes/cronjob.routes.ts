@@ -38,7 +38,7 @@ router.post('/:configId/generate-table', async (req: any, res: any) => {
     }
 
     const { migrateKeepAliveTable } = await import('../lib/supabase-remote-sql');
-    const migResult = await migrateKeepAliveTable(config.supabaseUrl, config.databasePassword);
+    const migResult = await migrateKeepAliveTable(config.supabaseUrl, config.databasePassword, config.poolerUrl);
 
     if (!migResult.success) {
       await prisma.activityLog.create({

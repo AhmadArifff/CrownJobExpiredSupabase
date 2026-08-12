@@ -88,9 +88,11 @@ model SupabaseConfig {
   accountEmail           String
   databaseName           String
   supabaseUrl            String
+  websiteUrl             String?   // Website application URL connected to this database
   supabaseAnonKey        String
   supabaseServiceRoleKey String
   databasePassword       String?   // Supabase DB password for direct PostgreSQL DDL access
+  poolerUrl              String?   // Connection Pooler URL for IPv4 support (e.g. aws-0-ap-southeast-1.pooler.supabase.com)
   
   status                 String    @default("pending")   // pending | active | error
   isTableGenerated       Boolean   @default(false)

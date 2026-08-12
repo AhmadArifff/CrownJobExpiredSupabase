@@ -34,15 +34,18 @@ router.get('/', async (req: any, res: any) => {
 // POST /api/configs
 router.post('/', async (req: any, res: any) => {
   try {
-    const { accountEmail, databaseName, supabaseUrl, supabaseAnonKey, supabaseServiceRoleKey, databasePassword } = req.body;
+    const { accountEmail, databaseName, supabaseUrl, websiteUrl, supabaseAnonKey, supabaseServiceRoleKey, databasePassword, poolerUrl } = req.body;
 
-    // Check limit max 2 configs
+    // Check limit max 2 configs per Supabase Account Email
     const count = await prisma.supabaseConfig.count({
-      where: { userId: req.user.id },
+      where: { 
+        userId: req.user.id,
+        accountEmail: accountEmail 
+      },
     });
 
     if (count >= 2) {
-      return res.status(400).json(Result.fail('Maksimal 2 konfigurasi Supabase per akun.'));
+      return res.status(400).json(Result.fail(`Maksimal 2 konfigurasi untuk akun Supabase dengan email ${accountEmail}.`));
     }
 
     const config = await prisma.supabaseConfig.create({
@@ -51,9 +54,11 @@ router.post('/', async (req: any, res: any) => {
         accountEmail,
         databaseName,
         supabaseUrl,
+        websiteUrl: websiteUrl || null,
         supabaseAnonKey,
         supabaseServiceRoleKey,
         databasePassword: databasePassword || null,
+        poolerUrl: poolerUrl || null,
       },
     });
 
@@ -91,7 +96,7 @@ router.delete('/:id', async (req: any, res: any) => {
 router.put('/:id', async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const { accountEmail, databaseName, supabaseUrl, supabaseAnonKey, supabaseServiceRoleKey, databasePassword } = req.body;
+    const { accountEmail, databaseName, supabaseUrl, websiteUrl, supabaseAnonKey, supabaseServiceRoleKey, databasePassword, poolerUrl } = req.body;
 
     const existing = await prisma.supabaseConfig.findFirst({
       where: { id, userId: req.user.id },
@@ -107,9 +112,11 @@ router.put('/:id', async (req: any, res: any) => {
         ...(accountEmail && { accountEmail }),
         ...(databaseName && { databaseName }),
         ...(supabaseUrl && { supabaseUrl }),
+        ...(websiteUrl !== undefined && { websiteUrl: websiteUrl || null }),
         ...(supabaseAnonKey && { supabaseAnonKey }),
         ...(supabaseServiceRoleKey && { supabaseServiceRoleKey }),
         ...(databasePassword !== undefined && { databasePassword: databasePassword || null }),
+        ...(poolerUrl !== undefined && { poolerUrl: poolerUrl || null }),
       },
     });
 
@@ -199,7 +206,7 @@ router.post('/:id/test-connection', async (req: any, res: any) => {
       }
 
       const { migrateKeepAliveTable } = await import('../lib/supabase-remote-sql');
-      const migResult = await migrateKeepAliveTable(config.supabaseUrl, config.databasePassword);
+      const migResult = await migrateKeepAliveTable(config.supabaseUrl, config.databasePassword, config.poolerUrl);
 
       if (!migResult.success) {
         // Connection OK but table creation failed → status stays active, isTableGenerated stays false
@@ -288,6 +295,60 @@ router.post('/:id/test-connection', async (req: any, res: any) => {
         message: 'Connected & Ready — koneksi berhasil dan tabel sudah ada.',
       })
     );
+  } catch (error: any) {
+    return res.status(500).json(Result.fail(error.message));
+  }
+});
+
+// POST /api/configs/:id/test-website
+router.post('/:id/test-website', async (req: any, res: any) => {
+  try {
+    const { id } = req.params;
+    const config = await prisma.supabaseConfig.findFirst({
+      where: { id, userId: req.user.id },
+    });
+
+    if (!config || !config.websiteUrl) {
+      return res.status(400).json(Result.fail('Website URL tidak dikonfigurasikan pada project ini.'));
+    }
+
+    const startTime = Date.now();
+    try {
+      const response = await fetch(config.websiteUrl, {
+        method: 'HEAD',
+        headers: { 'User-Agent': 'KeepAlive-Website-Checker/1.0' },
+      });
+      const responseTime = Date.now() - startTime;
+      
+      return res.json(
+        Result.ok({
+          isOnline: response.ok || response.status < 500,
+          status: response.status,
+          responseTimeMs: responseTime,
+          message: `Website '${config.websiteUrl}' terhubung! (HTTP ${response.status} - ${responseTime}ms)`,
+        })
+      );
+    } catch (fetchErr: any) {
+      try {
+        const response = await fetch(config.websiteUrl, {
+          method: 'GET',
+          headers: { 'User-Agent': 'KeepAlive-Website-Checker/1.0' },
+        });
+        const responseTime = Date.now() - startTime;
+        return res.json(
+          Result.ok({
+            isOnline: response.ok || response.status < 500,
+            status: response.status,
+            responseTimeMs: responseTime,
+            message: `Website '${config.websiteUrl}' terhubung! (HTTP ${response.status} - ${responseTime}ms)`,
+          })
+        );
+      } catch (err2: any) {
+        return res.status(400).json(
+          Result.fail(`Gagal mengakses website (${config.websiteUrl}): ${err2.message}`)
+        );
+      }
+    }
   } catch (error: any) {
     return res.status(500).json(Result.fail(error.message));
   }
