@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "npx prisma generate && tsc",
+    "build": "npm --prefix ../../packages/shared run build && npx prisma generate && tsc",
     "start": "node dist/server.js",
     "lint": "eslint src/",
     "type-check": "tsc --noEmit",
@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@cronjob/shared": "*",
-    "@prisma/client": "^6.3.1",
+    "@prisma/client": "^6.19.3",
     "@supabase/supabase-js": "^2.48.1",
     "better-auth": "^1.1.18",
     "cors": "^2.8.5",
