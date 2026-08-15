@@ -8,7 +8,9 @@
     "BETTER_AUTH_SECRET",
     "BETTER_AUTH_URL",
     "JWT_SECRET",
-    "NEXT_PUBLIC_API_URL"
+    "NEXT_PUBLIC_API_URL",
+    "NEXT_PUBLIC_VERCEL_ENV",
+    "NEXT_PUBLIC_VERCEL_URL"
   ],
   "tasks": {
     "build": {

@@ -30,3 +30,6 @@ yarn-error.log*
 
 # Prisma generated files (if outside node_modules)
 prisma/generated
+
+# Graphify
+graphify-out/

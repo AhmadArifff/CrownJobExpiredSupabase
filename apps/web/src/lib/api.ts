@@ -1,7 +1,9 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { Result, ApiResponse } from '@cronjob/shared';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const VERCEL_URL = process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : '';
+const IS_PREVIEW = process.env.NEXT_PUBLIC_VERCEL_ENV === 'preview';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || (IS_PREVIEW && VERCEL_URL ? `${VERCEL_URL}/api` : 'http://localhost:4000/api');
 
 class ApiClient {
   private client: AxiosInstance;
