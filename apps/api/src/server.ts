@@ -39,6 +39,10 @@ app.use('/api/configs', configRoutes);
 app.use('/api/cronjob', cronjobRoutes);
 app.use('/api/logs', logsRoutes);
 
-app.listen(port, () => {
-  console.log(`[API] Server is running on port ${port}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(port, () => {
+    console.log(`[API] Server is running on port ${port}`);
+  });
+}
+
+export default app;
