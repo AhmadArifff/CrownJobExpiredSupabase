@@ -131,6 +131,8 @@ Membangun aplikasi **open-source CronJob Keep-Alive Manager** sebagai Admin Pane
 | 12 | **Backend API** — Express.js REST API | **P0** | Backend |
 | 13 | **Database Schema** — Prisma ORM + Supabase PostgreSQL | **P0** | Backend |
 | 14 | **Protected Routes** — Auth Guard frontend + backend | **P0** | Full-stack |
+| 15 | **Env File Uploader** — upload .env, parse to JSON, preview, save to DB | **P1** | Full-stack |
+| 16 | **GitHub Repo Links** — simpan max 2 link repo project | **P1** | Full-stack |
 
 ### Out of Scope (Future Versions)
 
@@ -315,36 +317,71 @@ CrownJobExpiredSupbase/
 
 ### 4.2 Vercel Deployment Strategy
 
-Kedua apps di-deploy ke **Vercel Free Tier** sebagai project terpisah dalam 1 repo:
+Kedua apps di-deploy ke **Vercel Free Tier** sebagai project terpisah dalam 1 repo (`AhmadArifff/CrownJobExpiredSupabase`):
 
-| App | Vercel Project | Root Directory | Framework |
-|-----|---------------|----------------|----------|
-| `apps/web` | `cronjob-keepalive-web` | `apps/web` | Next.js |
-| `apps/api` | `cronjob-keepalive-api` | `apps/api` | Other (Express via Serverless) |
+| App | Vercel Project Name | Root Directory | Framework Preset | Production Domain |
+|-----|---------------------|----------------|------------------|-------------------|
+| `apps/api` (Backend) | `crownjob-dev` | `apps/api` | Other / Express | `https://crownjob-dev.vercel.app` |
+| `apps/web` (Frontend) | `cronjob-web` | `apps/web` | Next.js | `https://cronjob-web.vercel.app` |
 
-#### Backend di Vercel: Express → Serverless Function
+---
 
-```typescript
-// apps/api/api/index.ts — Vercel serverless entry
-import app from '../src/app';
+#### 4.2.1 Konfigurasi Project 1: Backend (`apps/api`)
 
-export default app;  // Vercel wraps Express as serverless function
-```
+- **Vercel Team / Scope**: Personal / Team
+- **Project Name**: `crownjob-dev`
+- **Framework Preset**: `Other` (atau `Express`)
+- **Root Directory**: `apps/api`
+- **Include source files outside Root Directory**: **Checked (ON)** *(Wajib agar dependencies `@cronjob/shared` terbaca)*
+- **Build & Output Settings**:
+  - **Build Command**: `npm run build` *(atau `turbo run build`)*
+  - **Output Directory**: *Kosongkan (Default / N/A)*
+  - **Install Command**: `npm install --prefix=../..` *(atau `cd ../.. && npm install`)*
+- **Environment Variables (`apps/api`)**:
+  ```env
+  DATABASE_URL="postgresql://postgres.msqdrtgbdrtobsvypozl:e5Yj.fF-y*FCL%2Fn@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
+  DIRECT_URL="postgresql://postgres.msqdrtgbdrtobsvypozl:e5Yj.fF-y*FCL%2Fn@aws-0-ap-south-1.pooler.supabase.com:5432/postgres"
+  ENCRYPTION_KEY="f192b3a4c5d6e7f8091a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e"
+  BETTER_AUTH_SECRET="your-better-auth-secret-min-32-chars-long-123456789"
+  BETTER_AUTH_URL="https://crownjob-dev.vercel.app"
+  JWT_SECRET="your-jwt-secret-min-32-chars-long-123456789"
+  NODE_ENV="production"
+  FRONTEND_URL="https://cronjob-web.vercel.app"
+  ```
+
+---
+
+#### 4.2.2 Konfigurasi Project 2: Frontend (`apps/web`)
+
+- **Project Name**: `cronjob-web`
+- **Framework Preset**: `Next.js`
+- **Root Directory**: `apps/web`
+- **Include source files outside Root Directory**: **Checked (ON)**
+- **Build Command**: `next build` *(Default)*
+- **Output Directory**: `.next` *(Default)*
+- **Install Command**: `npm install --prefix=../..`
+- **Environment Variables (`apps/web`)**:
+  ```env
+  NEXT_PUBLIC_API_URL="https://crownjob-dev.vercel.app/api"
+  ```
+
+---
+
+#### 4.2.3 Serverless Function Handler (`apps/api/vercel.json`)
 
 ```json
-// apps/api/vercel.json
 {
   "version": 2,
   "builds": [
     {
-      "src": "api/index.ts",
+      "src": "src/server.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "api/index.ts"
+      "dest": "/src/server.ts"
     }
   ]
 }
@@ -586,6 +623,9 @@ model SupabaseConfig {
   supabaseUrl           String   @map("supabase_url")
   supabaseAnonKey       String   @map("supabase_anon_key")        // Encrypted
   supabaseServiceRoleKey String  @map("supabase_service_role_key") // Encrypted
+  envDataFrontend       Json?    @map("env_data_frontend")        // Parsed JSON from Frontend .env
+  envDataBackend        Json?    @map("env_data_backend")         // Parsed JSON from Backend .env
+  githubRepoLinks       Json?    @map("github_repo_links")        // Array of URLs (max 2)
   isTableGenerated      Boolean  @default(false) @map("is_table_generated")
   lastInteraction       DateTime? @map("last_interaction")
   status                String   @default("unknown")              // active | inactive | error | unknown
@@ -731,8 +771,8 @@ async getConfigs(userId: string): Promise<Result<SupabaseConfig[]>> {
 ### 8.1 API Base URL
 
 ```
-Development: http://localhost:3001/api/v1
-Production:  https://cronjob-keepalive-api.vercel.app/api/v1
+Development: http://localhost:4000/api
+Production:  https://crownjob-dev.vercel.app/api
 ```
 
 ### 8.2 Standard Response Format
@@ -831,6 +871,11 @@ export const createConfigSchema = z.object({
     .string()
     .min(1, 'Service Role Key is required')
     .regex(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/, 'Invalid JWT format'),
+  githubRepoLinks: z
+    .array(z.string().url('Must be a valid URL'))
+    .max(2, 'Maximum 2 repository links allowed')
+    .optional(),
+  envData: z.record(z.string()).optional(),
 });
 
 export const pingSchema = z.object({
@@ -994,6 +1039,38 @@ export const bulkDeleteSchema = z.object({
 - **Then** tema aplikasi berganti antara Light Mode dan Dark Mode secara halus (*smooth transition*)
 - **And** semua komponen (Navbar, Card, Text, Button, Table, Badge, Footer) menyesuaikan skema warna secara dinamis tanpa kontras yang buruk
 - **And** pilihan tema tersimpan di *Local Storage* pengguna melalui `next-themes`.
+
+#### US-2.7: Manage Frontend & Backend Environment Variables
+**As a** user,
+**I want to** mengelola environment variables (`.env`) untuk **Frontend** dan **Backend** secara terpisah,
+**So that** sistem bisa menyimpan kedua env tersebut secara rapi dan saya bisa melakukan input via file maupun manual text.
+
+**Acceptance Criteria (PM & QA):**
+- **Given** user berada di form tambah/edit konfigurasi
+- **When** user ingin menambahkan/mengedit environment variables
+- **Then** (Frontend) menyediakan **2 bagian terpisah**: "Frontend Env" dan "Backend Env".
+- **And** user bisa melakukan **Upload/Drag & Drop file `.env`** ATAU **input text/copy-paste secara manual** pada text-area yang disediakan.
+- **And** (Frontend) mem-parsing input (baik dari file maupun text manual) menjadi key-value JSON dan menampilkan preview.
+- **And** (Frontend) menyediakan fitur **Copy to Clipboard** pada saat mode Edit, sehingga user dapat menyalin semua env vars kembali ke format `KEY="VALUE"` dengan sekali klik.
+- **And** (Backend) memvalidasi JSON payload dan menyimpannya di database (kolom `env_data_frontend` & `env_data_backend`).
+- **QA Strategy:** 
+  - Pastikan tombol Copy Env menghasilkan teks valid sesuai standar `.env`.
+  - Parsing teks manual maupun file upload harus kebal terhadap syntax error (graceful error handling).
+  - Pastikan perpindahan data JSON (frontend & backend) terisolasi dengan baik.
+
+#### US-2.8: Tambah GitHub Repository Links
+**As a** user,
+**I want to** menyimpan link GitHub project (maksimal 2 link: Frontend & Backend),
+**So that** saya bisa mengakses repositori terkait langsung dari dashboard.
+
+**Acceptance Criteria (PM & QA):**
+- **Given** user berada di form tambah/edit konfigurasi
+- **When** user memasukkan URL repository GitHub (hingga 2 URL)
+- **Then** (Backend) memvalidasi format URL agar dipastikan valid dan membatasi array max 2 elemen
+- **And** (Frontend) menampilkan link tersebut di detail Config dengan UI icon GitHub yang user-friendly
+- **QA Strategy:**
+  - Test input lebih dari 2 URL (harus gagal validasi Zod).
+  - Test payload link dengan script XSS untuk memastikan pencegahan vulnerability.
 
 #### US-2.4: Lihat Daftar Konfigurasi (Data Isolation)
 **As a** user,

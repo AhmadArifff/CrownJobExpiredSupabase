@@ -29,7 +29,9 @@ yarn-error.log*
 .idea/
 
 # Prisma generated files (if outside node_modules)
-prisma/generated
+**/prisma/generated
+**/prisma/generated/**
+*.tmp*
 
 # Graphify
 graphify-out/

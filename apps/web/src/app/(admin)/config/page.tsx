@@ -5,6 +5,8 @@ import { Settings, Plus, Trash2, Edit3, Key, Mail, Database, AlertCircle, X, Shi
 import { useConfigStore } from '@/stores/useConfigStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { api } from '@/lib/api';
+import { EnvEditor } from '@/components/config/EnvEditor';
+import { GithubRepoLinks } from '@/components/config/GithubRepoLinks';
 import { SupabaseConfigDTO, CreateConfigInput, createConfigSchema } from '@cronjob/shared';
 
 export default function ConfigPage() {
@@ -23,6 +25,9 @@ export default function ConfigPage() {
   const [supabaseServiceRoleKey, setSupabaseServiceRoleKey] = useState('');
   const [databasePassword, setDatabasePassword] = useState('');
   const [poolerUrl, setPoolerUrl] = useState('');
+  const [envDataFrontend, setEnvDataFrontend] = useState<Record<string, string>>({});
+  const [envDataBackend, setEnvDataBackend] = useState<Record<string, string>>({});
+  const [githubRepoLinks, setGithubRepoLinks] = useState<string[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [testingWebsiteId, setTestingWebsiteId] = useState<string | null>(null);
@@ -55,6 +60,9 @@ export default function ConfigPage() {
     setSupabaseServiceRoleKey('');
     setDatabasePassword('');
     setPoolerUrl('');
+    setEnvDataFrontend({});
+    setEnvDataBackend({});
+    setGithubRepoLinks([]);
     setFormError(null);
     setIsModalOpen(true);
   };
@@ -69,6 +77,9 @@ export default function ConfigPage() {
     setSupabaseServiceRoleKey(cfg.supabaseServiceRoleKey);
     setDatabasePassword(cfg.databasePassword || '');
     setPoolerUrl(cfg.poolerUrl || '');
+    setEnvDataFrontend(cfg.envDataFrontend || {});
+    setEnvDataBackend(cfg.envDataBackend || {});
+    setGithubRepoLinks(cfg.githubRepoLinks || []);
     setFormError(null);
     setShowAnonKey(false);
     setShowServiceRoleKey(false);
@@ -87,6 +98,9 @@ export default function ConfigPage() {
       websiteUrl: websiteUrl ? websiteUrl : undefined,
       supabaseAnonKey,
       supabaseServiceRoleKey,
+      envDataFrontend: Object.keys(envDataFrontend).length > 0 ? envDataFrontend : undefined,
+      envDataBackend: Object.keys(envDataBackend).length > 0 ? envDataBackend : undefined,
+      githubRepoLinks: githubRepoLinks.length > 0 ? githubRepoLinks : undefined,
     };
 
     // Build the data to send, optionally including databasePassword and poolerUrl
@@ -245,6 +259,38 @@ export default function ConfigPage() {
                     <span className="text-slate-600 dark:text-slate-400 font-medium">Service Role Key:</span>
                     <span className="text-slate-600 dark:text-slate-400 font-mono">{maskKey(cfg.supabaseServiceRoleKey)}</span>
                   </div>
+
+                  {cfg.githubRepoLinks && cfg.githubRepoLinks.length > 0 && (
+                    <div className="flex items-start justify-between border-t border-slate-200 dark:border-slate-800/80 pt-2 mt-2">
+                      <span className="text-slate-600 dark:text-slate-400 font-medium">Repositories:</span>
+                      <div className="flex flex-col gap-1 items-end">
+                        {cfg.githubRepoLinks.map((link, idx) => (
+                          <a key={idx} href={link} target="_blank" rel="noopener noreferrer" className="text-brand-600 dark:text-brand-400 font-medium hover:underline flex items-center gap-1">
+                            <span className="truncate max-w-[150px]">Repo {idx + 1}</span>
+                            <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {((cfg.envDataFrontend && Object.keys(cfg.envDataFrontend).length > 0) || (cfg.envDataBackend && Object.keys(cfg.envDataBackend).length > 0)) && (
+                     <div className="flex flex-col gap-1 border-t border-slate-200 dark:border-slate-800/80 pt-2 mt-2">
+                      <span className="text-slate-600 dark:text-slate-400 font-medium mb-1">Environment Vars:</span>
+                      {cfg.envDataFrontend && Object.keys(cfg.envDataFrontend).length > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-500 dark:text-slate-400 text-[11px]">Frontend:</span>
+                          <span className="text-slate-900 dark:text-slate-200 font-semibold text-[11px]">{Object.keys(cfg.envDataFrontend).length} vars loaded</span>
+                        </div>
+                      )}
+                      {cfg.envDataBackend && Object.keys(cfg.envDataBackend).length > 0 && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-500 dark:text-slate-400 text-[11px]">Backend:</span>
+                          <span className="text-slate-900 dark:text-slate-200 font-semibold text-[11px]">{Object.keys(cfg.envDataBackend).length} vars loaded</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {cfg.websiteUrl && (
@@ -462,6 +508,15 @@ export default function ConfigPage() {
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
                   If Auto-Gen fails with ENOTFOUND (IPv6 issue), enter your Supabase Connection Pooler host here.
                 </p>
+              </div>
+
+              <div className="border-t border-slate-200 dark:border-slate-800 pt-4">
+                <GithubRepoLinks links={githubRepoLinks} onChange={setGithubRepoLinks} />
+              </div>
+
+              <div className="border-t border-slate-200 dark:border-slate-800 pt-4 space-y-6">
+                <EnvEditor label="Frontend Environment Variables" envData={envDataFrontend} onChange={setEnvDataFrontend} />
+                <EnvEditor label="Backend Environment Variables" envData={envDataBackend} onChange={setEnvDataBackend} />
               </div>
 
               <div className="pt-3 flex items-center justify-end gap-3 sticky bottom-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md -mx-6 -mb-6 p-4 rounded-b-3xl border-t border-slate-200 dark:border-slate-800 mt-4">

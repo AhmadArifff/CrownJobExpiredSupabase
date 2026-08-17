@@ -34,6 +34,12 @@ export const createConfigSchema = z.object({
     .url('Must be a valid URL or host format (e.g. aws-0-ap-southeast-1.pooler.supabase.com)')
     .or(z.literal(''))
     .optional(),
+  githubRepoLinks: z
+    .array(z.string().url('Must be a valid URL'))
+    .max(2, 'Maximum 2 repository links allowed')
+    .optional(),
+  envDataFrontend: z.record(z.string()).optional(),
+  envDataBackend: z.record(z.string()).optional(),
 });
 
 export const updateConfigSchema = createConfigSchema.partial();

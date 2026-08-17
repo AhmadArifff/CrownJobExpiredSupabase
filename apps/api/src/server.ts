@@ -3,13 +3,15 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { Result } from '@cronjob/shared';
 
-dotenv.config();
+import path from 'path';
+
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 const app = express();
 const port = process.env.PORT || 4000;
 
 const allowedOrigins = process.env.NODE_ENV === 'production' 
-  ? [process.env.FRONTEND_URL || 'https://cronjob-keepalive-web.vercel.app']
+  ? [process.env.FRONTEND_URL || 'https://cronjob-web.vercel.app']
   : [/^https:\/\/.*\.vercel\.app$/, 'http://localhost:3000'];
 
 app.use(cors({
