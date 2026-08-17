@@ -211,7 +211,7 @@ router.post('/:id/test-connection', async (req: any, res: any) => {
         );
       }
 
-      const { migrateKeepAliveTable } = await import('../lib/supabase-remote-sql');
+      const { migrateKeepAliveTable } = await import('../lib/supabase-remote-sql.js');
       const migResult = await migrateKeepAliveTable(config.supabaseUrl, config.databasePassword, config.poolerUrl);
 
       if (!migResult.success) {
