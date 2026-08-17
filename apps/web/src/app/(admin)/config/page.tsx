@@ -498,10 +498,12 @@ export default function ConfigPage() {
                 <div className="relative">
                   <Database className="w-4 h-4 text-emerald-500 absolute left-3 top-3" />
                   <input
-                    type="url"
+                    type="text"
                     value={poolerUrl}
                     onChange={(e) => setPoolerUrl(e.target.value)}
-                    placeholder="e.g. aws-0-ap-southeast-1.pooler.supabase.com"
+                    pattern="^postgresql:\/\/.*@aws.*$"
+                    title="URL harus diawali dengan 'postgresql://' dan mengandung '@aws'"
+                    placeholder="e.g. postgresql://postgres...:6543/postgres"
                     className="w-full pl-9 pr-4 py-2.5 rounded-xl glass-input text-xs font-mono"
                   />
                 </div>
