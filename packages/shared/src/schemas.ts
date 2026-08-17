@@ -31,7 +31,7 @@ export const createConfigSchema = z.object({
     .min(1, 'Service Role Key is required'),
   poolerUrl: z
     .string()
-    .url('Must be a valid URL or host format (e.g. aws-0-ap-southeast-1.pooler.supabase.com)')
+    .regex(/^postgresql:\/\/.*@aws.*$/, "Must be a valid Supabase Connection Pooler URL (e.g. postgresql://...@aws...)")
     .or(z.literal(''))
     .optional(),
   githubRepoLinks: z
