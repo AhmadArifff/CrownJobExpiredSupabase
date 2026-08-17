@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { auth } from '../lib/auth';
 import { createClient } from '@supabase/supabase-js';
-import { Result } from '@cronjob/shared';
+import { Result } from '../lib/result';
 
 const router = Router();
 

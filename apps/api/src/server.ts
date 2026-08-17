@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { Result } from '@cronjob/shared';
+import { Result } from './lib/result';
 
 import path from 'path';
 

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { auth } from '../lib/auth';
-import { Result } from '@cronjob/shared';
+import { Result } from '../lib/result';
 
 const router = Router();
 
