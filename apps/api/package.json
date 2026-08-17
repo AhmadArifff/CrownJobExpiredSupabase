@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "npm --prefix ../../packages/shared run build && npx prisma generate && ncc build src/server.ts -o dist",
-    "start": "node dist/index.js",
+    "build": "npm --prefix ../../packages/shared run build && npx prisma generate && tsc",
+    "start": "node dist/server.js",
     "lint": "eslint src/",
     "type-check": "tsc --noEmit",
     "prisma:generate": "prisma generate",
@@ -13,7 +13,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@cronjob/shared": "*",
+    "@cronjob/shared": "file:../../packages/shared",
     "@prisma/client": "^6.19.3",
     "@supabase/supabase-js": "^2.48.1",
     "better-auth": "^1.1.18",
@@ -28,7 +28,6 @@
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.4",
     "@types/pg": "^8.21.0",
-    "@vercel/ncc": "^0.45.0",
     "eslint": "^10.8.1",
     "nodemon": "^3.1.9",
     "prisma": "^6.19.3",
