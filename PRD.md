@@ -387,7 +387,38 @@ Kedua apps di-deploy ke **Vercel Free Tier** sebagai project terpisah dalam 1 re
     }
   ]
 }
+}
 ```
+
+---
+
+### 4.3 Lessons Learned: Deploying Monorepo to Vercel
+
+Selama proses deployment aplikasi ini ke Vercel, ada beberapa bug kritis yang berhasil diselesaikan dan harus menjadi catatan untuk development ke depannya:
+
+#### 1. Vercel `@vercel/node` Monorepo Symlink Trace Bug (500 Internal Server Error)
+- **Masalah:** Vercel menggunakan `@vercel/nft` (Node File Trace) untuk membungkus serverless function. Saat mencoba mengimport `@cronjob/shared` (dari `packages/shared` via symlink), Vercel gagal melacak file di luar root directory `apps/api`, menghasilkan error `Cannot find module '@cronjob/shared'`. Perbaikan via `includeFiles` atau `@vercel/ncc` tidak berjalan mulus.
+- **Solusi Arsitektural:** Karena backend API hanya bergantung pada class `Result` dari shared package, kita memutus ketergantungan API terhadap `@cronjob/shared`. Class `Result` disalin langsung menjadi file lokal `apps/api/src/lib/result.ts`. Hal ini memastikan Vercel dapat melacak semua file secara lokal 100% tanpa masalah symlink monorepo.
+
+#### 2. ESM Module Mismatch (ERR_REQUIRE_ESM)
+- **Masalah:** Package autentikasi `better-auth` di-publish sebagai ESM-only (`.mjs`). Saat TypeScript API dikompilasi menjadi CommonJS (`module: "CommonJS"`), Node.js menolak me-load `better-auth` karena CommonJS tidak bisa me-`require()` module ESM.
+- **Solusi Arsitektural:** Backend `apps/api` sepenuhnya dikonversi menjadi project ESM.
+  - Tambah `"type": "module"` di `package.json`.
+  - Ubah `"module": "NodeNext"` dan `"moduleResolution": "NodeNext"` di `tsconfig.json`.
+  - Ganti `__dirname` (CJS-only) menggunakan `import.meta.url` dan `fileURLToPath`.
+  - **Sangat Penting:** Semua import lokal harus menggunakan ekstensi `.js` secara eksplisit (e.g., `import { auth } from './lib/auth.js';`), sesuai aturan standar ES Modules.
+
+#### 3. Cross-Site Cookies untuk Autentikasi (Unauthorized Error)
+- **Masalah:** Frontend berada di `crownjob-web.vercel.app` dan Backend di `crownjob-dev.vercel.app`. Meskipun keduanya menggunakan `.vercel.app`, browser menganggap ini sebagai **Cross-Site** karena `.vercel.app` termasuk dalam Public Suffix List. Secara default, `better-auth` menggunakan cookie dengan `SameSite=Lax`, yang akan **diblokir** oleh browser saat frontend mengirim request API lintas subdomain.
+- **Solusi Arsitektural:** Pada `better-auth` config di backend, tambahkan opsi `advanced.defaultCookieAttributes` untuk secara paksa menggunakan `SameSite: 'none'` dan `Secure: true` ketika di environment `production`. Hal ini mengizinkan cookie sesi dikirim lintas subdomain.
+  ```typescript
+  advanced: {
+    defaultCookieAttributes: {
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    },
+  }
+  ```
 
 ---
 
