@@ -5,7 +5,9 @@ import { Result } from '@cronjob/shared';
 
 import path from 'path';
 
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+}
 
 const app = express();
 const port = process.env.PORT || 4000;
