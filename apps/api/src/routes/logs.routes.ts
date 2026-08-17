@@ -35,7 +35,7 @@ router.get('/', async (req: any, res: any) => {
     // Wait, the Zod schema or frontend uses `projectName`, but earlier I removed it from SupabaseConfig.
     // I replaced it with `databaseName`. Let me fix this!
     
-    const formattedLogs = logs.map(log => ({
+    const formattedLogs = logs.map((log: any) => ({
       ...log,
       databaseName: log.config?.databaseName || 'Unknown',
     }));
