@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { prisma } from '../lib/prisma';
-import { auth } from '../lib/auth';
-import { Result } from '../lib/result';
+import { prisma } from '../lib/prisma.js';
+import { auth } from '../lib/auth.js';
+import { Result } from '../lib/result.js';
 import { createClient } from '@supabase/supabase-js';
 
 const router = Router();

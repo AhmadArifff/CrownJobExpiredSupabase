@@ -1,9 +1,12 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { Result } from './lib/result';
-
+import { Result } from './lib/result.js';
+import { fileURLToPath } from 'url';
 import path from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 if (process.env.NODE_ENV !== 'production') {
   dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -29,14 +32,14 @@ app.get('/api/health', (req, res) => {
 });
 
 import { toNodeHandler } from 'better-auth/node';
-import { auth } from './lib/auth';
+import { auth } from './lib/auth.js';
 
 // Better Auth routes
 app.all('/api/auth/*', toNodeHandler(auth));
 
-import configRoutes from './routes/config.routes';
-import cronjobRoutes from './routes/cronjob.routes';
-import logsRoutes from './routes/logs.routes';
+import configRoutes from './routes/config.routes.js';
+import cronjobRoutes from './routes/cronjob.routes.js';
+import logsRoutes from './routes/logs.routes.js';
 
 // Routes will be mounted here
 app.use('/api/configs', configRoutes);
