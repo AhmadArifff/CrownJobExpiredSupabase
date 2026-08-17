@@ -34,7 +34,7 @@ router.get('/', async (req: any, res: any) => {
 // POST /api/configs
 router.post('/', async (req: any, res: any) => {
   try {
-    const { accountEmail, databaseName, supabaseUrl, websiteUrl, supabaseAnonKey, supabaseServiceRoleKey, databasePassword, poolerUrl } = req.body;
+    const { accountEmail, databaseName, supabaseUrl, websiteUrl, supabaseAnonKey, supabaseServiceRoleKey, databasePassword, poolerUrl, envDataFrontend, envDataBackend, githubRepoLinks } = req.body;
 
     // Check limit max 2 configs per Supabase Account Email
     const count = await prisma.supabaseConfig.count({
@@ -59,6 +59,9 @@ router.post('/', async (req: any, res: any) => {
         supabaseServiceRoleKey,
         databasePassword: databasePassword || null,
         poolerUrl: poolerUrl || null,
+        envDataFrontend: envDataFrontend || null,
+        envDataBackend: envDataBackend || null,
+        githubRepoLinks: githubRepoLinks || null,
       },
     });
 
@@ -96,7 +99,7 @@ router.delete('/:id', async (req: any, res: any) => {
 router.put('/:id', async (req: any, res: any) => {
   try {
     const { id } = req.params;
-    const { accountEmail, databaseName, supabaseUrl, websiteUrl, supabaseAnonKey, supabaseServiceRoleKey, databasePassword, poolerUrl } = req.body;
+    const { accountEmail, databaseName, supabaseUrl, websiteUrl, supabaseAnonKey, supabaseServiceRoleKey, databasePassword, poolerUrl, envDataFrontend, envDataBackend, githubRepoLinks } = req.body;
 
     const existing = await prisma.supabaseConfig.findFirst({
       where: { id, userId: req.user.id },
@@ -117,6 +120,9 @@ router.put('/:id', async (req: any, res: any) => {
         ...(supabaseServiceRoleKey && { supabaseServiceRoleKey }),
         ...(databasePassword !== undefined && { databasePassword: databasePassword || null }),
         ...(poolerUrl !== undefined && { poolerUrl: poolerUrl || null }),
+        ...(envDataFrontend !== undefined && { envDataFrontend: envDataFrontend || null }),
+        ...(envDataBackend !== undefined && { envDataBackend: envDataBackend || null }),
+        ...(githubRepoLinks !== undefined && { githubRepoLinks: githubRepoLinks || null }),
       },
     });
 

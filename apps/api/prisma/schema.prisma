@@ -94,6 +94,9 @@ model SupabaseConfig {
   supabaseServiceRoleKey String
   databasePassword       String?   // Supabase DB password for direct PostgreSQL DDL access
   poolerUrl              String?   // Connection Pooler URL for IPv4 support (e.g. aws-0-ap-southeast-1.pooler.supabase.com)
+  envDataFrontend        Json?     @map("env_data_frontend")        // Parsed JSON from Frontend .env files
+  envDataBackend         Json?     @map("env_data_backend")         // Parsed JSON from Backend .env files
+  githubRepoLinks        Json?     @map("github_repo_links")        // Array of links, max 2 (Frontend & Backend)
   
   status                 String    @default("pending")   // pending | active | error
   isTableGenerated       Boolean   @default(false)

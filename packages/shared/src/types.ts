@@ -18,6 +18,9 @@ export interface SupabaseConfigDTO {
   supabaseServiceRoleKey: string;
   databasePassword?: string | null;
   poolerUrl?: string | null;
+  envDataFrontend?: Record<string, string> | null;
+  envDataBackend?: Record<string, string> | null;
+  githubRepoLinks?: string[] | null;
   status: ConfigStatus;
   isTableGenerated: boolean;
   lastInteraction: string | null;
