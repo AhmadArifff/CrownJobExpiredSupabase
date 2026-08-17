@@ -25,6 +25,11 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Root endpoint to prevent "Cannot GET /" confusion
+app.get('/', (req, res) => {
+  res.json({ message: 'CrownJob API is running. Go to /api/health for status.' });
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   const result = Result.ok({ status: 'healthy', timestamp: new Date() });

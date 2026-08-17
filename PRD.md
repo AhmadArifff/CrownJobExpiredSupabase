@@ -363,6 +363,8 @@ Kedua apps di-deploy ke **Vercel Free Tier** sebagai project terpisah dalam 1 re
 - **Environment Variables (`apps/web`)**:
   ```env
   NEXT_PUBLIC_API_URL="https://crownjob-dev.vercel.app/api"
+  BETTER_AUTH_SECRET="your-better-auth-secret-min-32-chars-long-123456789"
+  NEXT_PUBLIC_BETTER_AUTH_URL="https://cronjob-web.vercel.app"
   ```
 
 ---
