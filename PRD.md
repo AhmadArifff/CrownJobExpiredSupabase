@@ -131,6 +131,8 @@ Membangun aplikasi **open-source CronJob Keep-Alive Manager** sebagai Admin Pane
 | 12 | **Backend API** — Express.js REST API | **P0** | Backend |
 | 13 | **Database Schema** — Prisma ORM + Supabase PostgreSQL | **P0** | Backend |
 | 14 | **Protected Routes** — Auth Guard frontend + backend | **P0** | Full-stack |
+| 15 | **Env File Uploader** — upload .env, parse to JSON, preview, save to DB | **P1** | Full-stack |
+| 16 | **GitHub Repo Links** — simpan max 2 link repo project | **P1** | Full-stack |
 
 ### Out of Scope (Future Versions)
 
@@ -586,6 +588,8 @@ model SupabaseConfig {
   supabaseUrl           String   @map("supabase_url")
   supabaseAnonKey       String   @map("supabase_anon_key")        // Encrypted
   supabaseServiceRoleKey String  @map("supabase_service_role_key") // Encrypted
+  envData               Json?    @map("env_data")                 // Parsed JSON from .env files
+  githubRepoLinks       Json?    @map("github_repo_links")        // Array of URLs (max 2)
   isTableGenerated      Boolean  @default(false) @map("is_table_generated")
   lastInteraction       DateTime? @map("last_interaction")
   status                String   @default("unknown")              // active | inactive | error | unknown
@@ -831,6 +835,11 @@ export const createConfigSchema = z.object({
     .string()
     .min(1, 'Service Role Key is required')
     .regex(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/, 'Invalid JWT format'),
+  githubRepoLinks: z
+    .array(z.string().url('Must be a valid URL'))
+    .max(2, 'Maximum 2 repository links allowed')
+    .optional(),
+  envData: z.record(z.string()).optional(),
 });
 
 export const pingSchema = z.object({
@@ -994,6 +1003,35 @@ export const bulkDeleteSchema = z.object({
 - **Then** tema aplikasi berganti antara Light Mode dan Dark Mode secara halus (*smooth transition*)
 - **And** semua komponen (Navbar, Card, Text, Button, Table, Badge, Footer) menyesuaikan skema warna secara dinamis tanpa kontras yang buruk
 - **And** pilihan tema tersimpan di *Local Storage* pengguna melalui `next-themes`.
+
+#### US-2.7: Upload Environment File & Preview
+**As a** user,
+**I want to** mengunggah file environment (`.env` atau `.env.example`),
+**So that** sistem bisa membaca string values-nya, mem-parsing ke format JSON, memberikan preview, dan menyimpannya ke konfigurasi Supabase saya.
+
+**Acceptance Criteria (PM & QA):**
+- **Given** user berada di form tambah/edit konfigurasi
+- **When** user memilih file `.env` atau drag & drop file
+- **Then** (Frontend) mem-parsing isi file tersebut secara lokal menjadi key-value (string values) JSON
+- **And** (Frontend) menampilkan antarmuka preview untuk memvalidasi/edit key-value sebelum disubmit
+- **And** (Backend) memvalidasi JSON payload dari frontend dan menyimpan data di `env_data`
+- **QA Strategy:** 
+  - Pastikan validasi file khusus `.env` atau `.env.example` berjalan baik di frontend.
+  - Parsing harus kebal terhadap syntax error dari `.env` file (graceful error handling).
+
+#### US-2.8: Tambah GitHub Repository Links
+**As a** user,
+**I want to** menyimpan link GitHub project (maksimal 2 link: Frontend & Backend),
+**So that** saya bisa mengakses repositori terkait langsung dari dashboard.
+
+**Acceptance Criteria (PM & QA):**
+- **Given** user berada di form tambah/edit konfigurasi
+- **When** user memasukkan URL repository GitHub (hingga 2 URL)
+- **Then** (Backend) memvalidasi format URL agar dipastikan valid dan membatasi array max 2 elemen
+- **And** (Frontend) menampilkan link tersebut di detail Config dengan UI icon GitHub yang user-friendly
+- **QA Strategy:**
+  - Test input lebih dari 2 URL (harus gagal validasi Zod).
+  - Test payload link dengan script XSS untuk memastikan pencegahan vulnerability.
 
 #### US-2.4: Lihat Daftar Konfigurasi (Data Isolation)
 **As a** user,
