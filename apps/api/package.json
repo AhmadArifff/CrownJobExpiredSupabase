@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "npm --prefix ../../packages/shared run build && npx prisma generate && tsc",
+    "build": "npm --prefix ../../packages/shared run build && node -e \"const fs=require('fs'); fs.rmSync('node_modules/@cronjob/shared', {recursive:true, force:true}); fs.cpSync('../../packages/shared', 'node_modules/@cronjob/shared', {recursive:true});\" && npx prisma generate && tsc",
     "start": "node dist/server.js",
     "lint": "eslint src/",
     "type-check": "tsc --noEmit",
