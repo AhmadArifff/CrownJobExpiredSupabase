@@ -169,24 +169,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </button>
 
               {showNotifications && (
-                <div className="absolute -right-20 sm:right-0 mt-2 w-[300px] sm:w-80 glass-card p-4 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 z-50 animate-in fade-in slide-in-from-top-2">
-                  <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-3">
-                    <span className="font-bold text-xs uppercase tracking-wider text-slate-800 dark:text-slate-200">
-                      Notifications & Alerts
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-semibold">
-                      System Normal
-                    </span>
-                  </div>
-                  <div className="space-y-2 text-xs">
-                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
-                      <div className="font-semibold text-slate-800 dark:text-slate-200">🔔 CronJob Keep-Alive Notification</div>
-                      <div className="text-slate-500 dark:text-slate-400 mt-1">
-                        All configured Supabase databases are being monitored. 7-day inactivity limit alerts active.
+                <>
+                  {/* Backdrop to close notification dropdown when clicked outside */}
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowNotifications(false)}
+                  />
+                  <div className="fixed left-4 right-4 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-80 max-w-sm sm:max-w-none mx-auto sm:mx-0 glass-card p-4 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 z-50 animate-in fade-in slide-in-from-top-2">
+                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-3">
+                      <span className="font-bold text-xs uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                        Notifications & Alerts
+                      </span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-semibold">
+                        System Normal
+                      </span>
+                    </div>
+                    <div className="space-y-2 text-xs">
+                      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
+                        <div className="font-semibold text-slate-800 dark:text-slate-200">🔔 CronJob Keep-Alive Notification</div>
+                        <div className="text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                          All configured Supabase databases are being monitored. 7-day inactivity limit alerts active.
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                </>
               )}
             </div>
 
