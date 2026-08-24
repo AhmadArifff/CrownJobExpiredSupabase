@@ -725,6 +725,21 @@ CREATE TABLE IF NOT EXISTS cronjob_keepalive (
 
 ## 7. Authentication & Authorization
 
+### 7.0 Default & Demo User Access Credentials
+
+Berikut adalah kredensial akun bawaan (*default / seeded user*) yang dapat digunakan untuk login dan mengakses seluruh fitur pada sistem:
+
+| Attribute | Default Admin Account | User Self-Registration |
+|-----------|------------------------|------------------------|
+| **Full Name** | Super Admin | Sesuai input saat registrasi |
+| **Email** | `admin@cronjob.com` | Email pengguna pribadi |
+| **Password** | `password123` | Password pribadi (min. 8 karakter) |
+| **Role / Scope** | System Administrator | General User |
+| **Access Rights** | • Akses penuh ke Dashboard & Statistik<br>• Manajemen Konfigurasi Supabase (Multi-Account)<br>• Eksekusi manual & otomatis keep-alive Ping / DDL Table Auto-Gen<br>• Inspeksi Activity Logs & status database<br>• Testing URL Website eksternal | • Akses Dashboard pribadi<br>• Manajemen Konfigurasi Supabase milik sendiri (Isolasi data `user_id`)<br>• Eksekusi keep-alive & inspeksi logs milik sendiri |
+| **Seed Command** | `npm run seed --workspace=@cronjob/api` *(atau `npx tsx prisma/seed.ts` di folder `apps/api`)* | Via halaman `/register` (Better Auth) |
+
+---
+
 ### 7.1 Auth Flow
 
 ```

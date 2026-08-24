@@ -66,12 +66,17 @@ Before you begin, ensure you have the following installed:
    NEXT_PUBLIC_API_URL="http://localhost:4000/api"
    ```
 
-4. **Initialize Database:**
-   Push the Prisma schema to your API database:
+4. **Initialize Database & Seed Default Admin:**
+   Push the Prisma schema to your API database and seed default user:
    ```bash
    cd apps/api
    npx prisma db push
+   npm run seed
    ```
+
+   **Default Admin Credentials:**
+   - **Email:** `admin@cronjob.com`
+   - **Password:** `password123`
 
 5. **Start the Development Server:**
    From the root of the project, run:
