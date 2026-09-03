@@ -77,6 +77,42 @@ router.post('/:configId/generate-table', async (req: any, res: any) => {
   }
 });
 
+/**
+ * Helper to determine the lowest available positive sequential integer ID (gap-filling).
+ * Inspects existing rows in the target Supabase table.
+ * If IDs are [1, 3, 4, 5], ID 2 is empty/missing, so it returns 2.
+ * If IDs are [1, 2, 3], no gaps exist, so it returns 4.
+ * If table is empty, returns 1.
+ */
+async function getNextSequentialId(supabase: any): Promise<number> {
+  try {
+    const { data, error } = await supabase
+      .from('cronjob_keepalive')
+      .select('id')
+      .order('id', { ascending: true })
+      .limit(5000);
+
+    if (error || !data || data.length === 0) {
+      return 1;
+    }
+
+    const idSet = new Set(
+      data
+        .map((row: any) => Number(row.id))
+        .filter((id: number) => !isNaN(id) && id > 0)
+    );
+
+    let candidate = 1;
+    while (idSet.has(candidate)) {
+      candidate++;
+    }
+
+    return candidate;
+  } catch (err) {
+    return 1;
+  }
+}
+
 // GET /:configId/data
 router.get('/:configId/data', async (req: any, res: any) => {
   try {
@@ -92,11 +128,12 @@ router.get('/:configId/data', async (req: any, res: any) => {
 
     const supabase = createClient(config.supabaseUrl, config.supabaseServiceRoleKey);
     
+    // Order strictly by row ID descending so IDs never appear out of order
     const { data, error } = await supabase
       .from('cronjob_keepalive')
       .select('id, source, message, created_at')
-      .order('created_at', { ascending: false })
-      .limit(50);
+      .order('id', { ascending: false })
+      .limit(100);
 
     if (error) {
       const errStr = JSON.stringify(error);
@@ -135,10 +172,30 @@ router.post('/:configId/ping', async (req: any, res: any) => {
 
     const supabase = createClient(config.supabaseUrl, config.supabaseServiceRoleKey);
     
-    // Insert ping
-    const { error: insertError } = await supabase.from('cronjob_keepalive').insert([
-      { source: 'CronJob Manager', message: pingMessage || 'Ping' }
+    // Check database table first and find lowest available sequential integer ID (fills any gaps)
+    let nextId = await getNextSequentialId(supabase);
+
+    // Insert ping with sequential ID
+    let { error: insertError } = await supabase.from('cronjob_keepalive').insert([
+      { id: nextId, source: 'CronJob Manager', message: pingMessage || 'Ping' }
     ]);
+
+    // Handle race condition / duplicate key collision by recalculating once
+    if (insertError && (insertError.message?.includes('duplicate key') || insertError.code === '23505')) {
+      nextId = await getNextSequentialId(supabase);
+      const retry = await supabase.from('cronjob_keepalive').insert([
+        { id: nextId, source: 'CronJob Manager', message: pingMessage || 'Ping' }
+      ]);
+      insertError = retry.error;
+    }
+
+    // Fallback if table identity column strictly forbids manual IDs (e.g. GENERATED ALWAYS)
+    if (insertError && (insertError.message?.includes('ALWAYS') || insertError.message?.includes('identity'))) {
+      const fallback = await supabase.from('cronjob_keepalive').insert([
+        { source: 'CronJob Manager', message: pingMessage || 'Ping' }
+      ]);
+      insertError = fallback.error;
+    }
 
     if (insertError) {
       const errStr = JSON.stringify(insertError);
@@ -212,9 +269,25 @@ router.post('/ping-all', async (req: any, res: any) => {
     let successCount = 0;
     for (const config of configs) {
       const supabase = createClient(config.supabaseUrl, config.supabaseServiceRoleKey);
-      const { error } = await supabase.from('cronjob_keepalive').insert([
-        { source: 'CronJob Manager Auto-Ping', message: 'Ping All' }
+      let nextId = await getNextSequentialId(supabase);
+      let { error } = await supabase.from('cronjob_keepalive').insert([
+        { id: nextId, source: 'CronJob Manager Auto-Ping', message: 'Ping All' }
       ]);
+      
+      if (error && (error.message?.includes('duplicate key') || error.code === '23505')) {
+        nextId = await getNextSequentialId(supabase);
+        const retry = await supabase.from('cronjob_keepalive').insert([
+          { id: nextId, source: 'CronJob Manager Auto-Ping', message: 'Ping All' }
+        ]);
+        error = retry.error;
+      }
+
+      if (error && (error.message?.includes('ALWAYS') || error.message?.includes('identity'))) {
+        const fallback = await supabase.from('cronjob_keepalive').insert([
+          { source: 'CronJob Manager Auto-Ping', message: 'Ping All' }
+        ]);
+        error = fallback.error;
+      }
       
       if (!error) {
         successCount++;
