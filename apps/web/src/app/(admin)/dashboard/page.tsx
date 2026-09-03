@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useConfigStore } from '@/stores/useConfigStore';
 import { useUIStore } from '@/stores/useUIStore';
+import { useNotificationStore } from '@/stores/useNotificationStore';
 import { api } from '@/lib/api';
 import { SupabaseConfigDTO } from '@cronjob/shared';
 import { AnimatedListDemo } from '@/components/magicui/animated-list-demo';
@@ -27,12 +28,16 @@ import { NotificationDialog } from '@/components/shared/NotificationDialog';
 export default function DashboardPage() {
   const { configs, setConfigs, setIsLoading, isLoading } = useConfigStore();
   const addToast = useUIStore((state) => state.addToast);
+  const { notifications, fetchNotifications, markAsRead } = useNotificationStore();
   const [pingingId, setPingingId] = useState<string | null>(null);
   const [isNotificationDialogOpen, setIsNotificationDialogOpen] = useState(false);
 
+  const unreadNotifications = notifications.filter((n) => !n.isRead);
+
   useEffect(() => {
     fetchUserConfigs();
-  }, []);
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   const fetchUserConfigs = async () => {
     setIsLoading(true);
@@ -129,6 +134,11 @@ export default function DashboardPage() {
           >
             <Bell className="w-4 h-4 text-brand-500 dark:text-brand-400" />
             <span>Live Stream</span>
+            {unreadNotifications.length > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white">
+                {unreadNotifications.length}
+              </span>
+            )}
           </button>
           <Link
             href="/config"
@@ -304,9 +314,14 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        {/* Animated List Demo Container */}
-        <div className="max-w-md mx-auto">
-          <AnimatedListDemo className="h-[380px]" />
+        {/* Animated List Container (Data Real Supabase, Non-Repeating, Single Animation) */}
+        <div className="max-w-lg mx-auto">
+          <AnimatedListDemo
+            items={unreadNotifications}
+            disableAnimation={false}
+            onToggleRead={(id) => markAsRead(id)}
+            className="min-h-[260px] max-h-[400px]"
+          />
         </div>
       </div>
 

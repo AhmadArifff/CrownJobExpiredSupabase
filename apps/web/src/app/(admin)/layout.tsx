@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useUIStore } from '@/stores/useUIStore';
+import { useNotificationStore } from '@/stores/useNotificationStore';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { NotificationDialog } from '@/components/shared/NotificationDialog';
 
@@ -26,11 +27,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [mounted, setMounted] = React.useState(false);
   const { user, isAuthenticated, logout } = useAuthStore();
   const { isSidebarOpen, toggleSidebar } = useUIStore();
+  const { notifications, fetchNotifications } = useNotificationStore();
   const [showNotifications, setShowNotifications] = React.useState(false);
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (mounted && isAuthenticated) {
+      fetchNotifications();
+    }
+  }, [mounted, isAuthenticated, fetchNotifications]);
 
   useEffect(() => {
     if (mounted && !isAuthenticated) {
@@ -161,12 +171,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(true)}
-                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 relative transition-all group"
-                title="Notifications & Message Dialog"
+                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 relative transition-all group flex items-center gap-1.5"
+                title="Notifikasi & Pesan Supabase"
               >
                 <Bell className="w-4 h-4 text-brand-500 dark:text-brand-400 group-hover:scale-110 transition-transform" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full" />
+                {unreadCount > 0 ? (
+                  <>
+                    <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow-sm animate-in zoom-in">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                    <span className="absolute -top-1 -right-1 flex size-4 rounded-full bg-rose-400 animate-ping opacity-75 pointer-events-none" />
+                  </>
+                ) : null}
               </button>
 
               <NotificationDialog

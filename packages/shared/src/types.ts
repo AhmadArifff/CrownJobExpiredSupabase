@@ -41,8 +41,9 @@ export interface ActivityLogDTO {
   userId: string;
   configId: string | null;
   accountName?: string;
-  action: 'insert' | 'delete' | 'generate_table' | 'health_check' | 'bulk_delete' | 'auto_ping';
-  status: 'success' | 'failed';
+  databaseName?: string;
+  action: 'insert' | 'delete' | 'generate_table' | 'health_check' | 'bulk_delete' | 'auto_ping' | string;
+  status: 'success' | 'failed' | string;
   message: string | null;
   metadata?: Record<string, any> | null;
   createdAt: string;
