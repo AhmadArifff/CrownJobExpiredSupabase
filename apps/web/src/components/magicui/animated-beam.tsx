@@ -1,6 +1,6 @@
 'use client';
 
-import { RefObject, useEffect, useId, useState } from 'react';
+import { useEffect, useId, useState, type RefObject } from 'react';
 import { motion } from 'motion/react';
 import { cn } from '@/lib/utils';
 
@@ -18,6 +18,8 @@ export interface AnimatedBeamProps {
   gradientStopColor?: string;
   delay?: number;
   duration?: number;
+  repeat?: number;
+  repeatDelay?: number;
   startXOffset?: number;
   startYOffset?: number;
   endXOffset?: number;
@@ -33,11 +35,13 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
   reverse = false,
   duration = 3,
   delay = 0,
-  pathColor = 'rgba(156, 163, 175, 0.25)',
+  pathColor = 'gray',
   pathWidth = 2,
-  pathOpacity = 0.25,
-  gradientStartColor = '#6366f1',
-  gradientStopColor = '#10b981',
+  pathOpacity = 0.2,
+  gradientStartColor = '#ffaa40',
+  gradientStopColor = '#9c40ff',
+  repeat = Infinity,
+  repeatDelay = 0,
   startXOffset = 0,
   startYOffset = 0,
   endXOffset = 0,
@@ -47,8 +51,20 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
   const [pathD, setPathD] = useState('');
   const [svgDimensions, setSvgDimensions] = useState({ width: 0, height: 0 });
 
-  const strokeStart = reverse ? '100%' : '0%';
-  const strokeEnd = reverse ? '0%' : '100%';
+  // Calculate gradient coordinates based on the reverse prop
+  const gradientCoordinates = reverse
+    ? {
+        x1: ['90%', '-10%'],
+        x2: ['100%', '0%'],
+        y1: ['0%', '0%'],
+        y2: ['0%', '0%'],
+      }
+    : {
+        x1: ['10%', '110%'],
+        x2: ['0%', '100%'],
+        y1: ['0%', '0%'],
+        y2: ['0%', '0%'],
+      };
 
   useEffect(() => {
     const updatePath = () => {
@@ -71,7 +87,9 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
           rectB.top - containerRect.top + rectB.height / 2 + endYOffset;
 
         const controlY = startY - curvature;
-        const d = `M ${startX},${startY} Q ${(startX + endX) / 2},${controlY} ${endX},${endY}`;
+        const d = `M ${startX},${startY} Q ${
+          (startX + endX) / 2
+        },${controlY} ${endX},${endY}`;
         setPathD(d);
       }
     };
@@ -84,13 +102,10 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
       resizeObserver.observe(containerRef.current);
     }
 
-    const timeout = setTimeout(updatePath, 60);
-    window.addEventListener('resize', updatePath);
+    updatePath();
 
     return () => {
-      clearTimeout(timeout);
       resizeObserver.disconnect();
-      window.removeEventListener('resize', updatePath);
     };
   }, [
     containerRef,
@@ -110,7 +125,7 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
       height={svgDimensions.height}
       xmlns="http://www.w3.org/2000/svg"
       className={cn(
-        'pointer-events-none absolute left-0 top-0 transform-gpu stroke-2',
+        'pointer-events-none absolute top-0 left-0 transform-gpu stroke-2',
         className
       )}
       viewBox={`0 0 ${svgDimensions.width} ${svgDimensions.height}`}
@@ -141,17 +156,17 @@ export const AnimatedBeam: React.FC<AnimatedBeamProps> = ({
             y2: '0%',
           }}
           animate={{
-            x1: [strokeStart, strokeEnd],
-            x2: [strokeStart, strokeEnd],
-            y1: ['0%', '0%'],
-            y2: ['0%', '0%'],
+            x1: gradientCoordinates.x1,
+            x2: gradientCoordinates.x2,
+            y1: gradientCoordinates.y1,
+            y2: gradientCoordinates.y2,
           }}
           transition={{
             delay,
             duration,
             ease: [0.16, 1, 0.3, 1],
-            repeat: Infinity,
-            repeatDelay: 0,
+            repeat,
+            repeatDelay,
           }}
         >
           <stop stopColor={gradientStartColor} stopOpacity="0" />
