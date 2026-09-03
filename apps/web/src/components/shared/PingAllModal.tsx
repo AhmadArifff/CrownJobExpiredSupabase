@@ -250,6 +250,8 @@ export function PingAllModal({
       return copy;
     });
 
+    const pingStartTime = Date.now();
+
     const pingPromises = targetConfigs.map(async (cfg) => {
       const startTime = performance.now();
       try {
@@ -283,10 +285,14 @@ export function PingAllModal({
     });
 
     await Promise.all(pingPromises);
-    setIsPingingAll(false);
 
-    // Langsung buka tampilan ringkasan laporan tanpa timer / timing set!
-    setActiveView('report');
+    // Pastikan animasi berjalan minimal 2.5 detik agar pengguna dapat melihat animasi aliran sinar secara utuh
+    const elapsedTotal = Date.now() - pingStartTime;
+    if (elapsedTotal < 2500) {
+      await new Promise((resolve) => setTimeout(resolve, 2500 - elapsedTotal));
+    }
+
+    setIsPingingAll(false);
   };
 
   // Retry only failed projects
@@ -555,6 +561,10 @@ export function PingAllModal({
               {configs.map((cfg, idx) => {
                 const palette = PROJECT_PALETTES[idx % PROJECT_PALETTES.length];
                 const status = statuses[cfg.id] || 'idle';
+                const isProjectAnimated =
+                  isPingingAll ||
+                  status === 'pinging' ||
+                  retryingSingleId === cfg.id;
 
                 let startColor = palette.start;
                 let stopColor = palette.stop;
@@ -576,12 +586,13 @@ export function PingAllModal({
                     containerRef={containerRef}
                     fromRef={getItemRef(idx)}
                     toRef={hubRef}
-                    duration={isPingingAll ? 1.5 : 3}
+                    duration={1.2}
                     pathColor="#475569"
-                    pathOpacity={0.35}
+                    pathOpacity={isProjectAnimated ? 0.45 : 0.25}
                     pathWidth={2}
                     gradientStartColor={startColor}
                     gradientStopColor={stopColor}
+                    isAnimated={isProjectAnimated}
                   />
                 );
               })}
@@ -591,12 +602,23 @@ export function PingAllModal({
                 containerRef={containerRef}
                 fromRef={hubRef}
                 toRef={userRef}
-                duration={isPingingAll ? 1.5 : 3}
+                duration={1.2}
                 pathColor="#475569"
-                pathOpacity={0.35}
+                pathOpacity={
+                  isPingingAll ||
+                  Object.values(statuses).some((s) => s === 'pinging') ||
+                  retryingSingleId !== null
+                    ? 0.45
+                    : 0.25
+                }
                 pathWidth={2}
                 gradientStartColor="#8b5cf6"
                 gradientStopColor="#06b6d4"
+                isAnimated={
+                  isPingingAll ||
+                  Object.values(statuses).some((s) => s === 'pinging') ||
+                  retryingSingleId !== null
+                }
               />
             </div>
           </div>
