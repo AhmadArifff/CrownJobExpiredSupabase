@@ -14,16 +14,21 @@ import {
   ShieldCheck,
   Globe,
   ExternalLink,
+  Bell,
+  Sparkles,
 } from 'lucide-react';
 import { useConfigStore } from '@/stores/useConfigStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { api } from '@/lib/api';
 import { SupabaseConfigDTO } from '@cronjob/shared';
+import { AnimatedListDemo } from '@/components/magicui/animated-list-demo';
+import { NotificationDialog } from '@/components/shared/NotificationDialog';
 
 export default function DashboardPage() {
   const { configs, setConfigs, setIsLoading, isLoading } = useConfigStore();
   const addToast = useUIStore((state) => state.addToast);
   const [pingingId, setPingingId] = useState<string | null>(null);
+  const [isNotificationDialogOpen, setIsNotificationDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchUserConfigs();
@@ -118,6 +123,13 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsNotificationDialogOpen(true)}
+            className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-semibold text-slate-800 dark:text-slate-200 text-sm flex items-center gap-2 border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:scale-105"
+          >
+            <Bell className="w-4 h-4 text-brand-500 dark:text-brand-400" />
+            <span>Live Stream</span>
+          </button>
           <Link
             href="/config"
             className="px-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 font-semibold text-white text-sm flex items-center gap-2 shadow-lg shadow-brand-500/25 transition-all hover:scale-105"
@@ -262,6 +274,47 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Magic UI Real-Time Notification Stream Card */}
+      <div className="glass-card p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden relative shadow-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-slate-200/60 dark:border-slate-800/60 pb-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="flex size-2 rounded-full bg-emerald-500 animate-ping" />
+              <span className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
+                Magic UI Animated Stream
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
+                Spring Physics
+              </span>
+            </div>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white font-heading">
+              Live Notifications & Activity Stream
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Interactive message stream displaying live keep-alive signals, events, and background automated checks.
+            </p>
+          </div>
+          <button
+            onClick={() => setIsNotificationDialogOpen(true)}
+            className="px-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-xs font-semibold text-white flex items-center gap-2 transition-all self-start sm:self-auto shadow-md shadow-brand-500/25 hover:scale-105"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            Open Message Dialog
+          </button>
+        </div>
+
+        {/* Animated List Demo Container */}
+        <div className="max-w-md mx-auto">
+          <AnimatedListDemo className="h-[380px]" />
+        </div>
+      </div>
+
+      {/* Notification Modal Dialog */}
+      <NotificationDialog
+        isOpen={isNotificationDialogOpen}
+        onClose={() => setIsNotificationDialogOpen(false)}
+      />
     </div>
   );
 }

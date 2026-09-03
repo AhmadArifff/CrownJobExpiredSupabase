@@ -18,6 +18,7 @@ import {
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
+import { NotificationDialog } from '@/components/shared/NotificationDialog';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -156,45 +157,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             Status: <span className="text-emerald-500 dark:text-emerald-400 font-semibold">● Vercel Cron Active</span>
           </div>
           <div className="flex items-center gap-3">
-            {/* Notification Bell */}
+            {/* Notification Bell (Magic UI Animated Dialog) */}
             <div className="relative">
               <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 relative transition-all"
-                title="Notifications"
+                onClick={() => setShowNotifications(true)}
+                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 relative transition-all group"
+                title="Notifications & Message Dialog"
               >
-                <Bell className="w-4 h-4 text-brand-500 dark:text-brand-400" />
+                <Bell className="w-4 h-4 text-brand-500 dark:text-brand-400 group-hover:scale-110 transition-transform" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full" />
               </button>
 
-              {showNotifications && (
-                <>
-                  {/* Backdrop to close notification dropdown when clicked outside */}
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setShowNotifications(false)}
-                  />
-                  <div className="fixed left-4 right-4 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-80 max-w-sm sm:max-w-none mx-auto sm:mx-0 glass-card p-4 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 z-50 animate-in fade-in slide-in-from-top-2">
-                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-3">
-                      <span className="font-bold text-xs uppercase tracking-wider text-slate-800 dark:text-slate-200">
-                        Notifications & Alerts
-                      </span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-semibold">
-                        System Normal
-                      </span>
-                    </div>
-                    <div className="space-y-2 text-xs">
-                      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
-                        <div className="font-semibold text-slate-800 dark:text-slate-200">🔔 CronJob Keep-Alive Notification</div>
-                        <div className="text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                          All configured Supabase databases are being monitored. 7-day inactivity limit alerts active.
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
+              <NotificationDialog
+                isOpen={showNotifications}
+                onClose={() => setShowNotifications(false)}
+              />
             </div>
 
             <ThemeToggle />
