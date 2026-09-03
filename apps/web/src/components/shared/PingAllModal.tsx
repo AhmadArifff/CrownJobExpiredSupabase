@@ -82,9 +82,11 @@ export function PingAllModal({
     setMounted(true);
   }, []);
 
-  // Initialize statuses when opened
+  const prevIsOpenRef = useRef(false);
+
+  // Initialize statuses ONLY when modal transitions from closed to open!
   useEffect(() => {
-    if (isOpen && configs.length > 0) {
+    if (isOpen && !prevIsOpenRef.current && configs.length > 0) {
       const initialStatus: Record<string, PingStatus> = {};
       configs.forEach((c) => {
         initialStatus[c.id] = 'idle';
@@ -96,7 +98,15 @@ export function PingAllModal({
       setActiveView('visual');
       setReportFilter('all');
     }
-  }, [isOpen, configs]);
+    prevIsOpenRef.current = isOpen;
+  }, [isOpen]);
+
+  const handleManualClose = () => {
+    onClose();
+    if (hasExecuted) {
+      onComplete?.();
+    }
+  };
 
   // Ping a single config
   const handleSinglePing = async (cfg: SupabaseConfigDTO) => {
@@ -133,7 +143,6 @@ export function PingAllModal({
       }));
     } finally {
       setRetryingSingleId(null);
-      onComplete?.();
     }
   };
 
@@ -209,12 +218,9 @@ export function PingAllModal({
 
     await Promise.all(pingPromises);
     setIsPingingAll(false);
-    onComplete?.();
 
-    // After finish, smoothly show the report summary view
-    setTimeout(() => {
-      setActiveView('report');
-    }, 600);
+    // Langsung buka tampilan ringkasan laporan tanpa timer / timing set!
+    setActiveView('report');
   };
 
   // Retry only failed projects
@@ -241,11 +247,8 @@ export function PingAllModal({
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
-      {/* Backdrop */}
-      <div
-        onClick={onClose}
-        className="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity"
-      />
+      {/* Backdrop (Static backdrop - modal only closes when user clicks Close/Tutup button) */}
+      <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity" />
 
       {/* Modal Dialog Card */}
       <div className="relative w-full max-w-4xl bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] z-10 my-auto">
@@ -272,7 +275,7 @@ export function PingAllModal({
             </p>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleManualClose}
             className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
             title="Tutup Modal"
           >
@@ -802,7 +805,7 @@ export function PingAllModal({
             ) : null}
 
             <button
-              onClick={onClose}
+              onClick={handleManualClose}
               className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 transition-colors"
             >
               Tutup
