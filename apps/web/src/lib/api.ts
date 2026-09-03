@@ -49,7 +49,12 @@ class ApiClient {
   }
 
   private handleError<T>(err: any): Result<T> {
-    const msg = err.response?.data?.error?.message || err.response?.data?.message || err.message || 'Network error';
+    const data = err.response?.data;
+    const msg =
+      (typeof data?.error === 'string' ? data.error : data?.error?.message) ||
+      data?.message ||
+      err.message ||
+      'Network error';
     return Result.fail<T>(msg);
   }
 

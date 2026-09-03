@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Bell,
   X,
@@ -29,6 +30,7 @@ export function NotificationDialog({
   description = 'Data live real-time dari database Supabase & Keep-Alive audit logs.',
 }: NotificationDialogProps) {
   const [activeTab, setActiveTab] = useState<'unread' | 'read'>('unread');
+  const [mounted, setMounted] = useState(false);
   const {
     notifications,
     isLoading,
@@ -39,39 +41,44 @@ export function NotificationDialog({
   } = useNotificationStore();
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
     if (isOpen) {
       fetchNotifications();
     }
   }, [isOpen, fetchNotifications]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const unreadList = notifications.filter((n) => !n.isRead);
   const readList = notifications.filter((n) => n.isRead);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
+  // Use createPortal to mount directly to document.body, escaping parent backdrop-blur & sticky clipping
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity"
       />
 
       {/* Modal Dialog Card */}
       <div
         className={cn(
-          'relative w-full max-w-xl overflow-hidden rounded-3xl z-50',
+          'relative w-full max-w-xl overflow-hidden rounded-3xl z-10 my-auto',
           'bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl',
           'border border-slate-200/80 dark:border-slate-800/80',
-          'shadow-[0_25px_70px_rgba(0,0,0,0.25)] dark:shadow-[0_25px_80px_rgba(0,0,0,0.6)]',
-          'flex flex-col max-h-[90vh]'
+          'shadow-[0_25px_70px_rgba(0,0,0,0.35)] dark:shadow-[0_25px_80px_rgba(0,0,0,0.7)]',
+          'flex flex-col max-h-[88vh]'
         )}
       >
         {/* Glowing Top Accent */}
-        <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-brand-500 via-secondary-500 to-emerald-400" />
+        <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-brand-500 via-secondary-500 to-emerald-400 shrink-0" />
 
         {/* Header */}
-        <div className="px-6 pt-6 pb-4 border-b border-slate-200/80 dark:border-slate-800/80 flex items-start justify-between gap-4">
+        <div className="px-6 pt-6 pb-4 border-b border-slate-200/80 dark:border-slate-800/80 flex items-start justify-between gap-4 shrink-0 bg-white/50 dark:bg-slate-900/50">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <div className="flex size-7 items-center justify-center rounded-xl bg-brand-500/10 dark:bg-brand-500/20 text-brand-500 dark:text-brand-400">
@@ -112,7 +119,7 @@ export function NotificationDialog({
         </div>
 
         {/* Navigation Tabs (Belum Dibaca & Sudah Dibaca) */}
-        <div className="flex items-center justify-between px-6 pt-3 pb-2.5 border-b border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-950/20">
+        <div className="flex items-center justify-between px-6 pt-3 pb-2.5 border-b border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-950/20 shrink-0">
           <div className="flex items-center gap-2">
             {/* Tab: Belum Dibaca */}
             <button
@@ -176,19 +183,19 @@ export function NotificationDialog({
         </div>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-[320px]">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-[300px]">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center h-[280px] gap-3 text-slate-500">
+            <div className="flex flex-col items-center justify-center h-[260px] gap-3 text-slate-500">
               <RefreshCw className="size-7 animate-spin text-brand-500" />
               <span className="text-xs font-medium">Mengambil notifikasi dari database Supabase...</span>
             </div>
           ) : activeTab === 'unread' ? (
-            /* TAB: Belum Dibaca (Animasi 1x, Tidak Berulang, Live Data Supabase) */
+            /* TAB: Belum Dibaca (Animasi 1x, Tidak Berulang, Live Data Supabase Hari Ini) */
             <div className="space-y-3">
               <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
-                <span>Notifikasi baru belum dibaca</span>
+                <span>Notifikasi hari ini yang belum dibaca</span>
                 <span className="text-[11px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-medium">
-                  Animasi Spring 1x
+                  Hari Ini
                 </span>
               </div>
               <AnimatedListDemo
@@ -201,9 +208,9 @@ export function NotificationDialog({
             /* TAB: Sudah Dibaca (Statik, Tanpa Animasi Berulang) */
             <div className="space-y-3">
               <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
-                <span>Riwayat notifikasi yang telah dibaca</span>
+                <span>Riwayat notifikasi lampau & yang telah dibaca</span>
                 <span className="text-[11px] bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full font-medium">
-                  Statik (Tanpa Animasi)
+                  Statik (Arsip)
                 </span>
               </div>
               <AnimatedListDemo
@@ -216,7 +223,7 @@ export function NotificationDialog({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3.5 bg-slate-50/80 dark:bg-slate-950/60 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+        <div className="px-6 py-3.5 bg-slate-50/80 dark:bg-slate-950/60 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 shrink-0">
           <div className="flex items-center gap-2">
             <ShieldCheck className="size-3.5 text-emerald-500" />
             <span>Tersinkronisasi dengan Supabase Cloud</span>
@@ -229,7 +236,9 @@ export function NotificationDialog({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
+
 export default NotificationDialog;
