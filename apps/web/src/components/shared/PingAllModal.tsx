@@ -47,7 +47,7 @@ const Circle = forwardRef<
       ref={ref}
       title={title}
       className={cn(
-        'z-10 flex size-12 items-center justify-center rounded-full border-2 bg-white p-3 shadow-[0_0_20px_-12px_rgba(0,0,0,0.8)]',
+        'z-10 flex size-12 items-center justify-center rounded-full border-2 bg-slate-900/95 border-slate-700/80 p-2.5 shadow-[0_0_25px_-5px_rgba(0,0,0,0.8)] backdrop-blur-md transition-all duration-300',
         className
       )}
     >
@@ -57,208 +57,63 @@ const Circle = forwardRef<
 });
 Circle.displayName = 'Circle';
 
-const Icons = {
-  notion: () => (
-    <svg
-      className="size-full"
-      viewBox="0 0 100 100"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M6.017 4.313l55.333 -4.087c6.797 -0.583 8.543 -0.19 12.817 2.917l17.663 12.443c2.913 2.14 3.883 2.723 3.883 5.053v68.243c0 4.277 -1.553 6.807 -6.99 7.193L24.467 99.967c-4.08 0.193 -6.023 -0.39 -8.16 -3.113L3.3 79.94c-2.333 -3.113 -3.3 -5.443 -3.3 -8.167V11.113c0 -3.497 1.553 -6.413 6.017 -6.8z"
-        fill="#ffffff"
-      />
-      <path
-        d="M61.35 0.227l-55.333 4.087C1.553 4.7 0 7.617 0 11.113v60.66c0 2.723 0.967 5.053 3.3 8.167l13.007 16.913c2.137 2.723 4.08 3.307 8.16 3.113l64.257 -3.89c5.433 -0.387 6.99 -2.917 6.99 -7.193V20.64c0 -2.21 -0.873 -2.847 -3.443 -4.733L74.167 3.143c-4.273 -3.107 -6.02 -3.5 -12.817 -2.917zM25.92 19.523c-5.247 0.353 -6.437 0.433 -9.417 -1.99L8.927 11.507c-0.77 -0.78 -0.383 -1.753 1.557 -1.947l53.193 -3.887c4.467 -0.39 6.793 1.167 8.54 2.527l9.123 6.61c0.39 0.197 1.36 1.36 0.193 1.36l-54.933 3.307 -0.68 0.047zM19.803 88.3V30.367c0 -2.53 0.777 -3.697 3.103 -3.893L86 22.78c2.14 -0.193 3.107 1.167 3.107 3.693v57.547c0 2.53 -0.39 4.67 -3.883 4.863l-60.377 3.5c-3.493 0.193 -5.043 -0.97 -5.043 -4.083zm59.6 -54.827c0.387 1.75 0 3.5 -1.75 3.7l-2.91 0.577v42.773c-2.527 1.36 -4.853 2.137 -6.797 2.137 -3.107 0 -3.883 -0.973 -6.21 -3.887l-19.03 -29.94v28.967l6.02 1.363s0 3.5 -4.857 3.5l-13.39 0.777c-0.39 -0.78 0 -2.723 1.357 -3.11l3.497 -0.97v-38.3L30.48 40.667c-0.39 -1.75 0.58 -4.277 3.3 -4.473l14.367 -0.967 19.8 30.327v-26.83l-5.047 -0.58c-0.39 -2.143 1.163 -3.7 3.103 -3.89l13.4 -0.78z"
-        fill="#000000"
-        fillRule="evenodd"
-        clipRule="evenodd"
-      />
-    </svg>
-  ),
-  openai: () => (
-    <svg
-      className="size-full"
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="currentColor"
-    >
-      <path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z" />
-    </svg>
-  ),
-  googleDrive: () => (
-    <svg
-      className="size-full"
-      viewBox="0 0 87.3 78"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z"
-        fill="#0066da"
-      />
-      <path
-        d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z"
-        fill="#00ac47"
-      />
-      <path
-        d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z"
-        fill="#ea4335"
-      />
-      <path
-        d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z"
-        fill="#00832d"
-      />
-      <path
-        d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z"
-        fill="#2684fc"
-      />
-      <path
-        d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z"
-        fill="#ffba00"
-      />
-    </svg>
-  ),
-  whatsapp: () => (
-    <svg
-      className="size-full"
-      viewBox="0 0 175.216 175.552"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <defs>
-        <linearGradient
-          id="wa-grad"
-          x1="85.915"
-          x2="86.535"
-          y1="32.567"
-          y2="137.092"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop offset="0" stopColor="#57d163" />
-          <stop offset="1" stopColor="#23b33a" />
-        </linearGradient>
-      </defs>
-      <path
-        d="m12.966 161.238 10.439-38.114a73.42 73.42 0 0 1-9.821-36.772c.017-40.556 33.021-73.55 73.578-73.55 19.681.01 38.154 7.669 52.047 21.572s21.537 32.383 21.53 52.037c-.018 40.553-33.027 73.553-73.578 73.553h-.032c-12.313-.005-24.412-3.094-35.159-8.954z"
-        fill="#ffffff"
-      />
-      <path
-        d="M87.184 25.227c-33.733 0-61.166 27.423-61.178 61.13a60.98 60.98 0 0 0 9.349 32.535l1.455 2.313-6.179 22.558 23.146-6.069 2.235 1.324c9.387 5.571 20.15 8.517 31.126 8.523h.023c33.707 0 61.14-27.426 61.153-61.135a60.75 60.75 0 0 0-17.895-43.251 60.75 60.75 0 0 0-43.235-17.928z"
-        fill="url(#wa-grad)"
-      />
-      <path
-        d="M68.772 55.603c-1.378-3.061-2.828-3.123-4.137-3.176l-3.524-.043c-1.226 0-3.218.46-4.902 2.3s-6.435 6.287-6.435 15.332 6.588 17.785 7.506 19.013 12.718 20.381 31.405 27.75c15.529 6.124 18.689 4.906 22.061 4.6s10.877-4.447 12.408-8.74 1.532-7.971 1.073-8.74-1.685-1.226-3.525-2.146-10.877-5.367-12.562-5.981-2.91-.919-4.137.921-4.746 5.979-5.819 7.206-2.144 1.381-3.984.462-7.76-2.861-14.784-9.124c-5.465-4.873-9.154-10.891-10.228-12.73s-.114-2.835.808-3.751c.825-.824 1.838-2.147 2.759-3.22s1.224-1.84 1.836-3.065.307-2.301-.153-3.22-4.032-10.011-5.666-13.647"
-        fill="#ffffff"
-        fillRule="evenodd"
-      />
-    </svg>
-  ),
-  googleDocs: () => (
-    <svg
-      className="size-full"
-      viewBox="0 0 47 65"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <defs>
-        <linearGradient
-          x1="50%"
-          y1="8.5%"
-          x2="50%"
-          y2="100%"
-          id="docs-grad"
-        >
-          <stop stopColor="#1A237E" stopOpacity="0.2" offset="0%" />
-          <stop stopColor="#1A237E" stopOpacity="0.02" offset="100%" />
-        </linearGradient>
-      </defs>
-      <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
-        <path
-          d="M29.375,0 L4.40625,0 C1.9828125,0 0,1.99431818 0,4.43181818 L0,60.5681818 C0,63.0056818 1.9828125,65 4.40625,65 L42.59375,65 C45.0171875,65 47,63.0056818 47,60.5681818 L47,17.7272727 L36.71875,10.3409091 L29.375,0 Z"
-          fill="#4285F4"
-          fillRule="nonzero"
-        />
-        <polygon
-          fill="url(#docs-grad)"
-          fillRule="nonzero"
-          points="30.6638281 16.4309659 47 32.8582386 47 17.7272727"
-        />
-        <path
-          d="M11.75,47.2727273 L35.25,47.2727273 L35.25,44.3181818 L11.75,44.3181818 L11.75,47.2727273 Z M11.75,53.1818182 L29.375,53.1818182 L29.375,50.2272727 L11.75,50.2272727 L11.75,53.1818182 Z M11.75,32.5 L11.75,35.4545455 L35.25,35.4545455 L35.25,32.5 L11.75,32.5 Z M11.75,41.3636364 L35.25,41.3636364 L35.25,38.4090909 L11.75,38.4090909 L11.75,41.3636364 Z"
-          fill="#F1F1F1"
-          fillRule="nonzero"
-        />
-        <path
-          d="M29.375,0 L29.375,13.2954545 C29.375,15.7440341 31.3467969,17.7272727 33.78125,17.7272727 L47,17.7272727 L29.375,0 Z"
-          fill="#A1C2FA"
-          fillRule="nonzero"
-        />
-      </g>
-    </svg>
-  ),
-  zapier: () => (
-    <svg
-      className="size-full"
-      viewBox="0 0 244 66"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M57.1877 45.2253L57.1534 45.1166L78.809 25.2914V15.7391H44.0663V25.2914H64.8181L64.8524 25.3829L43.4084 45.2253V54.7775H79.1579V45.2253H57.1877Z"
-        fill="#201515"
-      />
-      <path
-        d="M100.487 14.8297C96.4797 14.8297 93.2136 15.434 90.6892 16.6429C88.3376 17.6963 86.3568 19.4321 85.0036 21.6249C83.7091 23.8321 82.8962 26.2883 82.6184 28.832L93.1602 30.3135C93.5415 28.0674 94.3042 26.4754 95.4482 25.5373C96.7486 24.5562 98.3511 24.0605 99.9783 24.136C102.118 24.136 103.67 24.7079 104.634 25.8519C105.59 26.9959 106.076 28.5803 106.076 30.6681V31.7091H95.9401C90.7807 31.7091 87.0742 32.8531 84.8206 35.1411C82.5669 37.429 81.442 40.4492 81.4458 44.2014C81.4458 48.0452 82.5707 50.9052 84.8206 52.7813C87.0704 54.6574 89.8999 55.5897 93.3089 55.5783C97.5379 55.5783 100.791 54.1235 103.067 51.214C104.412 49.426 105.372 47.3793 105.887 45.2024H106.27L107.723 54.7546H117.275V30.5651C117.275 25.5659 115.958 21.6936 113.323 18.948C110.688 16.2024 106.409 14.8297 100.487 14.8297ZM103.828 44.6475C102.312 45.9116 100.327 46.5408 97.8562 46.5408C95.8199 46.5408 94.4052 46.1843 93.6121 45.4712C93.2256 45.1338 92.9182 44.7155 92.7116 44.246C92.505 43.7764 92.4043 43.2671 92.4166 42.7543C92.3941 42.2706 92.4702 41.7874 92.6403 41.3341C92.8104 40.8808 93.071 40.4668 93.4062 40.1174C93.7687 39.7774 94.1964 39.5145 94.6633 39.3444C95.1303 39.1743 95.6269 39.1006 96.1231 39.1278H106.093V39.7856C106.113 40.7154 105.919 41.6374 105.527 42.4804C105.134 43.3234 104.553 44.0649 103.828 44.6475Z"
-        fill="#201515"
-      />
-      <path d="M39.0441 45.2253H0V54.789H39.0441V45.2253Z" fill="#FF4F00" />
-    </svg>
-  ),
-  messenger: () => (
-    <svg
-      className="size-full"
-      viewBox="0 0 48 48"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <radialGradient
-        id="msg-grad"
-        cx="11.087"
-        cy="7.022"
-        r="47.612"
-        gradientTransform="matrix(1 0 0 -1 0 50)"
+const SupabaseIcon = ({ className }: { className?: string }) => (
+  <svg
+    viewBox="0 0 109 113"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={cn('size-full', className)}
+  >
+    <path
+      d="M63.7076 110.284C60.8481 113.885 55.0502 111.912 54.9813 107.314L53.9738 40.0617L99.1934 40.0617C106.847 40.0617 111.118 48.8729 106.402 54.8117L63.7076 110.284Z"
+      fill="url(#sb-gradient-1)"
+    />
+    <path
+      d="M63.7076 110.284C60.8481 113.885 55.0502 111.912 54.9813 107.314L53.9738 40.0617L99.1934 40.0617C106.847 40.0617 111.118 48.8729 106.402 54.8117L63.7076 110.284Z"
+      fill="black"
+      fillOpacity="0.2"
+    />
+    <path
+      d="M45.317 2.50704C48.1765 -1.09424 53.9744 0.878847 54.0433 5.47717L54.3475 72.7297L9.83124 72.7297C2.17734 72.7297 -2.09344 63.9185 2.62241 57.9797L45.317 2.50704Z"
+      fill="url(#sb-gradient-2)"
+    />
+    <defs>
+      <linearGradient
+        id="sb-gradient-1"
+        x1="53.9738"
+        y1="54.9774"
+        x2="94.4635"
+        y2="73.8398"
         gradientUnits="userSpaceOnUse"
       >
-        <stop offset="0" stopColor="#1292ff" />
-        <stop offset=".079" stopColor="#2982ff" />
-        <stop offset=".23" stopColor="#4e69ff" />
-        <stop offset=".351" stopColor="#6559ff" />
-        <stop offset=".428" stopColor="#6d53ff" />
-        <stop offset=".754" stopColor="#df47aa" />
-        <stop offset=".946" stopColor="#ff6257" />
-      </radialGradient>
-      <path
-        fill="url(#msg-grad)"
-        d="M44,23.5C44,34.27,35.05,43,24,43c-1.651,0-3.25-0.194-4.784-0.564	c-0.465-0.112-0.951-0.069-1.379,0.145L13.46,44.77C12.33,45.335,11,44.513,11,43.249v-4.025c0-0.575-0.257-1.111-0.681-1.499	C6.425,34.165,4,29.11,4,23.5C4,12.73,12.95,4,24,4S44,12.73,44,23.5z"
-      />
-      <path
-        fill="#ffffff"
-        d="M34.394,18.501l-5.7,4.22c-0.61,0.46-1.44,0.46-2.04,0.01L22.68,19.74	c-1.68-1.25-4.06-0.82-5.19,0.94l-1.21,1.89l-4.11,6.68c-0.6,0.94,0.55,2.01,1.44,1.34l5.7-4.22c0.61-0.46,1.44-0.46,2.04-0.01	l3.974,2.991c1.68,1.25,4.06,0.82,5.19-0.94l1.21-1.89l4.11-6.68C36.434,18.901,35.284,17.831,34.394,18.501z"
-      />
-    </svg>
-  ),
-  user: () => (
-    <svg
-      className="size-full"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#000000"
-      strokeWidth="2"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  ),
-};
+        <stop stopColor="#249361" />
+        <stop offset="1" stopColor="#3ECF8E" />
+      </linearGradient>
+      <linearGradient
+        id="sb-gradient-2"
+        x1="38.7499"
+        y1="2.00006"
+        x2="60.2965"
+        y2="63.308"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop stopColor="#3ECF8E" />
+        <stop offset="1" stopColor="#249361" />
+      </linearGradient>
+    </defs>
+  </svg>
+);
+
+const PROJECT_PALETTES = [
+  { start: '#10b981', stop: '#06b6d4', ring: 'ring-emerald-400/50', border: 'border-emerald-500/70', glow: 'shadow-emerald-500/20' }, // Emerald - Cyan (Supabase)
+  { start: '#a855f7', stop: '#ec4899', ring: 'ring-purple-400/50', border: 'border-purple-500/70', glow: 'shadow-purple-500/20' },  // Purple - Pink
+  { start: '#f59e0b', stop: '#ef4444', ring: 'ring-amber-400/50', border: 'border-amber-500/70', glow: 'shadow-amber-500/20' },    // Amber - Orange
+  { start: '#3b82f6', stop: '#6366f1', ring: 'ring-blue-400/50', border: 'border-blue-500/70', glow: 'shadow-blue-500/20' },      // Blue - Indigo
+  { start: '#14b8a6', stop: '#10b981', ring: 'ring-teal-400/50', border: 'border-teal-500/70', glow: 'shadow-teal-500/20' },      // Teal - Emerald
+  { start: '#d946ef', stop: '#f43f5e', ring: 'ring-fuchsia-400/50', border: 'border-fuchsia-500/70', glow: 'shadow-fuchsia-500/20' },// Fuchsia - Rose
+  { start: '#0ea5e9', stop: '#38bdf8', ring: 'ring-sky-400/50', border: 'border-sky-500/70', glow: 'shadow-sky-500/20' },         // Sky - Cyan
+  { start: '#8b5cf6', stop: '#4f46e5', ring: 'ring-violet-400/50', border: 'border-violet-500/70', glow: 'shadow-violet-500/20' },  // Violet - Indigo
+];
 
 export function PingAllModal({
   isOpen,
@@ -267,14 +122,16 @@ export function PingAllModal({
   onComplete,
 }: PingAllModalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const div1Ref = useRef<HTMLDivElement>(null);
-  const div2Ref = useRef<HTMLDivElement>(null);
-  const div3Ref = useRef<HTMLDivElement>(null);
-  const div4Ref = useRef<HTMLDivElement>(null);
-  const div5Ref = useRef<HTMLDivElement>(null);
-  const div6Ref = useRef<HTMLDivElement>(null);
-  const div7Ref = useRef<HTMLDivElement>(null);
-  const div8Ref = useRef<HTMLDivElement>(null);
+  const userRef = useRef<HTMLDivElement>(null);
+  const hubRef = useRef<HTMLDivElement>(null);
+  const itemRefMap = useRef<Map<number, { current: HTMLDivElement | null }>>(new Map());
+
+  const getItemRef = (idx: number) => {
+    if (!itemRefMap.current.has(idx)) {
+      itemRefMap.current.set(idx, { current: null });
+    }
+    return itemRefMap.current.get(idx)!;
+  };
 
   const [mounted, setMounted] = useState(false);
   const [activeView, setActiveView] = useState<ActiveView>('visual');
@@ -574,205 +431,172 @@ export function PingAllModal({
               </div>
             </div>
 
-            {/* Exact Magic UI Animated Beam Stage */}
+            {/* Dark Aesthetic Stage matching previous dark style */}
             <div
-              className="relative flex h-[500px] w-full items-center justify-center overflow-hidden p-10 bg-white rounded-3xl border border-slate-200 shadow-2xl"
+              className="relative flex min-h-[520px] w-full items-center justify-center overflow-hidden p-6 sm:p-10 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 rounded-3xl border border-slate-800/90 shadow-2xl"
               ref={containerRef}
             >
-              <div className="flex size-full max-w-lg flex-row items-stretch justify-between gap-10">
-                {/* Left: User Node */}
-                <div className="flex flex-col justify-center">
-                  <Circle ref={div7Ref} title="Super Admin (Trigger Origin)">
-                    <Icons.user />
+              <div className="flex size-full max-w-2xl flex-row items-stretch justify-between gap-6 sm:gap-10 z-10">
+                {/* Left: Super Admin Node */}
+                <div className="flex flex-col justify-center items-center">
+                  <Circle
+                    ref={userRef}
+                    className="size-14 bg-slate-900/95 border-2 border-slate-700/80 shadow-xl shadow-brand-500/10 hover:border-brand-400 transition-colors"
+                    title="Super Admin (Trigger Origin)"
+                  >
+                    <User className="size-6 text-brand-400" />
                   </Circle>
+                  <span className="text-xs font-bold text-white mt-2 block">Super Admin</span>
+                  <span className="text-[10px] text-slate-400 font-mono">Trigger Origin</span>
                 </div>
 
-                {/* Center: OpenAI Node */}
-                <div className="flex flex-col justify-center">
+                {/* Center: KeepAlive Hub Node */}
+                <div className="flex flex-col justify-center items-center">
                   <Circle
-                    ref={div6Ref}
+                    ref={hubRef}
                     className={cn(
-                      'size-16 transition-all duration-300',
-                      isPingingAll && 'ring-4 ring-purple-400/50 shadow-purple-500/30'
+                      'size-20 bg-slate-900/95 border-2 transition-all duration-300 relative shadow-2xl',
+                      isPingingAll
+                        ? 'border-emerald-400 shadow-emerald-500/40 ring-4 ring-emerald-500/20 animate-pulse'
+                        : 'border-brand-500/80 shadow-brand-500/30'
                     )}
                     title="KeepAlive Hub (Cron Engine)"
                   >
-                    <Icons.openai />
+                    <Zap
+                      className={cn(
+                        'size-9 transition-colors',
+                        isPingingAll ? 'text-emerald-400' : 'text-brand-400'
+                      )}
+                    />
+                    {isPingingAll && (
+                      <span className="absolute inset-0 rounded-full border-2 border-emerald-400 animate-ping opacity-50" />
+                    )}
                   </Circle>
+                  <span className="text-xs font-bold text-white mt-2 block">KeepAlive Hub</span>
+                  <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
+                    <Server className="size-3" /> Cron Engine
+                  </span>
                 </div>
 
-                {/* Right: 5 Output Circles */}
-                <div className="flex flex-col justify-center gap-2">
-                  <Circle
-                    ref={div1Ref}
-                    title={
-                      configs[0]
-                        ? `${configs[0].databaseName} (${statuses[configs[0].id] || 'idle'})`
-                        : 'Google Drive'
-                    }
-                    className={cn(
-                      'transition-all duration-200 hover:scale-110',
-                      statuses[configs[0]?.id] === 'success' &&
-                        'ring-2 ring-emerald-500 shadow-emerald-500/20',
-                      statuses[configs[0]?.id] === 'failed' &&
-                        'ring-2 ring-rose-500 shadow-rose-500/20',
-                      statuses[configs[0]?.id] === 'pinging' &&
-                        'ring-2 ring-amber-500 animate-pulse'
-                    )}
-                  >
-                    <Icons.googleDrive />
-                  </Circle>
+                {/* Right: Dynamic Supabase Config Target Nodes */}
+                <div className="flex flex-col justify-center gap-3 max-h-[460px] overflow-y-auto pr-2 scrollbar-thin">
+                  {configs.length === 0 ? (
+                    <div className="p-4 rounded-2xl border border-slate-800 bg-slate-900/60 text-center text-xs text-slate-400">
+                      Belum ada database Supabase yang dikonfigurasi.
+                    </div>
+                  ) : (
+                    configs.map((cfg, idx) => {
+                      const palette = PROJECT_PALETTES[idx % PROJECT_PALETTES.length];
+                      const status = statuses[cfg.id] || 'idle';
+                      const latency = latencies[cfg.id];
 
-                  <Circle
-                    ref={div2Ref}
-                    title={
-                      configs[1]
-                        ? `${configs[1].databaseName} (${statuses[configs[1].id] || 'idle'})`
-                        : 'Google Docs'
-                    }
-                    className={cn(
-                      'transition-all duration-200 hover:scale-110',
-                      statuses[configs[1]?.id] === 'success' &&
-                        'ring-2 ring-emerald-500 shadow-emerald-500/20',
-                      statuses[configs[1]?.id] === 'failed' &&
-                        'ring-2 ring-rose-500 shadow-rose-500/20',
-                      statuses[configs[1]?.id] === 'pinging' &&
-                        'ring-2 ring-amber-500 animate-pulse'
-                    )}
-                  >
-                    <Icons.googleDocs />
-                  </Circle>
+                      return (
+                        <div key={cfg.id} className="flex items-center gap-3 group">
+                          {/* Circle Node with Supabase Icon */}
+                          <Circle
+                            ref={(el) => {
+                              getItemRef(idx).current = el;
+                            }}
+                            className={cn(
+                              'size-12 bg-slate-900/95 border-2 transition-all duration-200 hover:scale-110 shrink-0',
+                              status === 'success'
+                                ? 'border-emerald-400 shadow-lg shadow-emerald-500/30'
+                                : status === 'failed'
+                                ? 'border-rose-400 shadow-lg shadow-rose-500/30'
+                                : status === 'pinging'
+                                ? 'border-brand-400 ring-2 ring-brand-400/50 animate-pulse'
+                                : cn(palette.border, palette.glow)
+                            )}
+                            title={`${cfg.databaseName} (${status})`}
+                          >
+                            <SupabaseIcon className="size-6 drop-shadow" />
+                          </Circle>
 
-                  <Circle
-                    ref={div3Ref}
-                    title={
-                      configs[2]
-                        ? `${configs[2].databaseName} (${statuses[configs[2].id] || 'idle'})`
-                        : 'WhatsApp'
-                    }
-                    className={cn(
-                      'transition-all duration-200 hover:scale-110',
-                      statuses[configs[2]?.id] === 'success' &&
-                        'ring-2 ring-emerald-500 shadow-emerald-500/20',
-                      statuses[configs[2]?.id] === 'failed' &&
-                        'ring-2 ring-rose-500 shadow-rose-500/20',
-                      statuses[configs[2]?.id] === 'pinging' &&
-                        'ring-2 ring-amber-500 animate-pulse'
-                    )}
-                  >
-                    <Icons.whatsapp />
-                  </Circle>
-
-                  <Circle
-                    ref={div4Ref}
-                    title={
-                      configs[3]
-                        ? `${configs[3].databaseName} (${statuses[configs[3].id] || 'idle'})`
-                        : 'Messenger'
-                    }
-                    className={cn(
-                      'transition-all duration-200 hover:scale-110',
-                      statuses[configs[3]?.id] === 'success' &&
-                        'ring-2 ring-emerald-500 shadow-emerald-500/20',
-                      statuses[configs[3]?.id] === 'failed' &&
-                        'ring-2 ring-rose-500 shadow-rose-500/20',
-                      statuses[configs[3]?.id] === 'pinging' &&
-                        'ring-2 ring-amber-500 animate-pulse'
-                    )}
-                  >
-                    <Icons.messenger />
-                  </Circle>
-
-                  <Circle
-                    ref={div5Ref}
-                    title={
-                      configs[4]
-                        ? `${configs[4].databaseName} (${statuses[configs[4].id] || 'idle'})`
-                        : 'Notion'
-                    }
-                    className={cn(
-                      'transition-all duration-200 hover:scale-110',
-                      statuses[configs[4]?.id] === 'success' &&
-                        'ring-2 ring-emerald-500 shadow-emerald-500/20',
-                      statuses[configs[4]?.id] === 'failed' &&
-                        'ring-2 ring-rose-500 shadow-rose-500/20',
-                      statuses[configs[4]?.id] === 'pinging' &&
-                        'ring-2 ring-amber-500 animate-pulse'
-                    )}
-                  >
-                    <Icons.notion />
-                  </Circle>
-
-                  {configs.length > 5 && (
-                    <Circle
-                      ref={div8Ref}
-                      title={
-                        configs[5]
-                          ? `${configs[5].databaseName} (${statuses[configs[5].id] || 'idle'})`
-                          : 'Zapier'
-                      }
-                      className={cn(
-                        'transition-all duration-200 hover:scale-110',
-                        statuses[configs[5]?.id] === 'success' &&
-                          'ring-2 ring-emerald-500 shadow-emerald-500/20',
-                        statuses[configs[5]?.id] === 'failed' &&
-                          'ring-2 ring-rose-500 shadow-rose-500/20',
-                        statuses[configs[5]?.id] === 'pinging' &&
-                          'ring-2 ring-amber-500 animate-pulse'
-                      )}
-                    >
-                      <Icons.zapier />
-                    </Circle>
+                          {/* Database Info */}
+                          <div className="flex flex-col text-left min-w-[120px] max-w-[180px]">
+                            <span
+                              className="text-xs font-bold text-white truncate group-hover:text-brand-300 transition-colors"
+                              title={cfg.databaseName}
+                            >
+                              {cfg.databaseName}
+                            </span>
+                            <span className="text-[10px] font-mono mt-0.5 truncate">
+                              {status === 'success' && (
+                                <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                                  <CheckCircle2 className="size-3 shrink-0" />
+                                  {latency ?? 24}ms • Aktif
+                                </span>
+                              )}
+                              {status === 'failed' && (
+                                <span className="text-rose-400 font-semibold flex items-center gap-1">
+                                  <XCircle className="size-3 shrink-0" />
+                                  Error
+                                </span>
+                              )}
+                              {status === 'pinging' && (
+                                <span className="text-brand-400 flex items-center gap-1">
+                                  <Loader2 className="size-3 animate-spin shrink-0" />
+                                  Memeriksa...
+                                </span>
+                              )}
+                              {status === 'idle' && (
+                                <span className="text-slate-400">Siap diperiksa</span>
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })
                   )}
                 </div>
               </div>
 
-              {/* AnimatedBeams connecting right output circles to center OpenAI circle */}
-              <AnimatedBeam
-                containerRef={containerRef}
-                fromRef={div1Ref}
-                toRef={div6Ref}
-                duration={3}
-              />
-              <AnimatedBeam
-                containerRef={containerRef}
-                fromRef={div2Ref}
-                toRef={div6Ref}
-                duration={3}
-              />
-              <AnimatedBeam
-                containerRef={containerRef}
-                fromRef={div3Ref}
-                toRef={div6Ref}
-                duration={3}
-              />
-              <AnimatedBeam
-                containerRef={containerRef}
-                fromRef={div4Ref}
-                toRef={div6Ref}
-                duration={3}
-              />
-              <AnimatedBeam
-                containerRef={containerRef}
-                fromRef={div5Ref}
-                toRef={div6Ref}
-                duration={3}
-              />
-              {configs.length > 5 && (
-                <AnimatedBeam
-                  containerRef={containerRef}
-                  fromRef={div8Ref}
-                  toRef={div6Ref}
-                  duration={3}
-                />
-              )}
+              {/* AnimatedBeams connecting each Supabase project circle to KeepAlive Hub */}
+              {configs.map((cfg, idx) => {
+                const palette = PROJECT_PALETTES[idx % PROJECT_PALETTES.length];
+                const status = statuses[cfg.id] || 'idle';
 
-              {/* AnimatedBeam connecting center OpenAI circle to user circle */}
+                let startColor = palette.start;
+                let stopColor = palette.stop;
+
+                if (status === 'failed') {
+                  startColor = '#ef4444';
+                  stopColor = '#f43f5e';
+                } else if (status === 'success') {
+                  startColor = '#10b981';
+                  stopColor = '#34d399';
+                } else if (status === 'pinging') {
+                  startColor = '#38bdf8';
+                  stopColor = '#6366f1';
+                }
+
+                return (
+                  <AnimatedBeam
+                    key={cfg.id}
+                    containerRef={containerRef}
+                    fromRef={getItemRef(idx)}
+                    toRef={hubRef}
+                    duration={isPingingAll ? 1.5 : 3}
+                    pathColor="#475569"
+                    pathOpacity={0.35}
+                    pathWidth={2}
+                    gradientStartColor={startColor}
+                    gradientStopColor={stopColor}
+                  />
+                );
+              })}
+
+              {/* AnimatedBeam connecting KeepAlive Hub to Super Admin user */}
               <AnimatedBeam
                 containerRef={containerRef}
-                fromRef={div6Ref}
-                toRef={div7Ref}
-                duration={3}
+                fromRef={hubRef}
+                toRef={userRef}
+                duration={isPingingAll ? 1.5 : 3}
+                pathColor="#475569"
+                pathOpacity={0.35}
+                pathWidth={2}
+                gradientStartColor="#8b5cf6"
+                gradientStopColor="#06b6d4"
               />
             </div>
           </div>
