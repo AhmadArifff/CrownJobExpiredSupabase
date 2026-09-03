@@ -6,6 +6,7 @@ import { useConfigStore } from '@/stores/useConfigStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { api } from '@/lib/api';
 import { SupabaseConfigDTO, KeepAliveDataRow } from '@cronjob/shared';
+import { PingAllModal } from '@/components/shared/PingAllModal';
 
 export default function CronJobPage() {
   const { configs, setConfigs } = useConfigStore();
@@ -19,6 +20,7 @@ export default function CronJobPage() {
   const [pinging, setPinging] = useState(false);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [testingWebsite, setTestingWebsite] = useState(false);
+  const [isPingAllModalOpen, setIsPingAllModalOpen] = useState(false);
 
   useEffect(() => {
     fetchUserConfigs();
@@ -252,12 +254,11 @@ export default function CronJobPage() {
           </p>
         </div>
         <button
-          onClick={handlePingAll}
-          disabled={pinging}
-          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-brand-500 to-secondary-500 hover:from-brand-600 hover:to-secondary-600 font-semibold text-white text-sm flex items-center gap-2 shadow-lg shadow-brand-500/25 transition-all hover:scale-105 disabled:opacity-50"
+          onClick={() => setIsPingAllModalOpen(true)}
+          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-brand-500 to-secondary-500 hover:from-brand-600 hover:to-secondary-600 font-semibold text-white text-sm flex items-center gap-2 shadow-lg shadow-brand-500/25 transition-all hover:scale-105"
         >
-          <Zap className={`w-4 h-4 ${pinging ? 'animate-spin' : ''}`} />
-          {pinging ? 'Pinging All...' : 'Ping All Projects'}
+          <Zap className="w-4 h-4" />
+          <span>Ping All Projects</span>
         </button>
       </div>
 
@@ -516,6 +517,17 @@ export default function CronJobPage() {
           </div>
         </div>
       </div>
+
+      {/* Magic UI Animated Beam Modal for Ping All Projects */}
+      <PingAllModal
+        isOpen={isPingAllModalOpen}
+        onClose={() => setIsPingAllModalOpen(false)}
+        configs={configs}
+        onComplete={() => {
+          fetchUserConfigs();
+          if (selectedConfigId) loadTableData(selectedConfigId);
+        }}
+      />
     </div>
   );
 }

@@ -69,6 +69,19 @@ const formatRelativeTime = (dateStr: string): string => {
   }
 };
 
+const isPastDay = (dateInput: string | number | Date): boolean => {
+  try {
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return false;
+    const now = new Date();
+    // Midnight of today in local time
+    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    return d.getTime() < todayMidnight;
+  } catch {
+    return false;
+  }
+};
+
 export const useNotificationStore = create<NotificationState>((set, get) => ({
   notifications: [],
   readIds: [],
@@ -88,13 +101,14 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
       const items: NotificationRecord[] = [];
 
-      // 1. Map real ActivityLogs from Supabase database
+      // 1. Map real ActivityLogs from Supabase database (limit to recent 25)
       if (logsRes.isSuccess && Array.isArray(logsRes.getValue())) {
-        const logs = logsRes.getValue();
+        const logs = logsRes.getValue().slice(0, 25);
         logs.forEach((log) => {
           const logId = `log-${log.id}`;
           const isSuccess = log.status?.toUpperCase() === 'SUCCESS';
           const actionUpper = log.action?.toUpperCase() || 'OPERATION';
+          const isAlreadyPastDay = isPastDay(log.createdAt);
 
           let icon = '⚡';
           let color = '#10B981'; // Emerald
@@ -128,7 +142,8 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
             databaseName: log.databaseName,
             action: log.action,
             status: log.status,
-            isRead: currentReadIds.includes(logId),
+            // Rule: Jika sudah lewat hari, otomatis berstatus sudah dibaca!
+            isRead: currentReadIds.includes(logId) || isAlreadyPastDay,
           });
         });
       }
@@ -155,7 +170,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
                 timestamp: new Date(cfg.lastInteraction).getTime(),
                 databaseName: cfg.databaseName,
                 status: cfg.status,
-                isRead: currentReadIds.includes(alertId),
+                isRead: currentReadIds.includes(alertId) || isPastDay(cfg.lastInteraction),
               });
             }
           }
