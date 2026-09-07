@@ -140,9 +140,12 @@ export function PingAllModal({
   const [latencies, setLatencies] = useState<Record<string, number>>({});
   const [errorMessages, setErrorMessages] = useState<Record<string, string>>({});
   const [isPingingAll, setIsPingingAll] = useState(false);
+  const [isTestingConnection, setIsTestingConnection] = useState(false);
+  const [currentAction, setCurrentAction] = useState<'idle' | 'testing' | 'pinging'>('idle');
   const [hasExecuted, setHasExecuted] = useState(false);
   const [generatingTableId, setGeneratingTableId] = useState<string | null>(null);
   const [retryingSingleId, setRetryingSingleId] = useState<string | null>(null);
+  const [testingSingleId, setTestingSingleId] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -161,6 +164,7 @@ export function PingAllModal({
       setLatencies({});
       setErrorMessages({});
       setHasExecuted(false);
+      setCurrentAction('idle');
       setActiveView('visual');
       setReportFilter('all');
     }
@@ -172,6 +176,105 @@ export function PingAllModal({
     if (hasExecuted) {
       onComplete?.();
     }
+  };
+
+  // Test connection for a single config
+  const handleSingleTestConnection = async (cfg: SupabaseConfigDTO) => {
+    setTestingSingleId(cfg.id);
+    setStatuses((prev) => ({ ...prev, [cfg.id]: 'pinging' }));
+    const startTime = performance.now();
+
+    try {
+      const res = await api.post<{ isTableGenerated: boolean; message: string }>(
+        `/configs/${cfg.id}/test-connection`
+      );
+      const elapsed = Math.round(performance.now() - startTime);
+
+      if (res.isSuccess) {
+        setStatuses((prev) => ({ ...prev, [cfg.id]: 'success' }));
+        setLatencies((prev) => ({ ...prev, [cfg.id]: elapsed }));
+        setErrorMessages((prev) => {
+          const copy = { ...prev };
+          delete copy[cfg.id];
+          return copy;
+        });
+      } else {
+        setStatuses((prev) => ({ ...prev, [cfg.id]: 'failed' }));
+        setErrorMessages((prev) => ({
+          ...prev,
+          [cfg.id]: res.error || 'Test connection gagal',
+        }));
+      }
+    } catch (err: any) {
+      setStatuses((prev) => ({ ...prev, [cfg.id]: 'failed' }));
+      setErrorMessages((prev) => ({
+        ...prev,
+        [cfg.id]: err.message || 'Network error saat menguji koneksi',
+      }));
+    } finally {
+      setTestingSingleId(null);
+    }
+  };
+
+  // Execute concurrent connection test for all databases
+  const handleTestConnectionAll = async (targetConfigs: SupabaseConfigDTO[] = configs) => {
+    if (isTestingConnection || isPingingAll || targetConfigs.length === 0) return;
+    setIsTestingConnection(true);
+    setCurrentAction('testing');
+    setHasExecuted(true);
+
+    // Set targets to pinging status for animation
+    setStatuses((prev) => {
+      const copy = { ...prev };
+      targetConfigs.forEach((c) => {
+        copy[c.id] = 'pinging';
+      });
+      return copy;
+    });
+
+    const testStartTime = Date.now();
+
+    const testPromises = targetConfigs.map(async (cfg) => {
+      const startTime = performance.now();
+      try {
+        const res = await api.post<{ isTableGenerated: boolean; message: string }>(
+          `/configs/${cfg.id}/test-connection`
+        );
+        const elapsed = Math.round(performance.now() - startTime);
+
+        if (res.isSuccess) {
+          setStatuses((prev) => ({ ...prev, [cfg.id]: 'success' }));
+          setLatencies((prev) => ({ ...prev, [cfg.id]: elapsed }));
+          setErrorMessages((prev) => {
+            const copy = { ...prev };
+            delete copy[cfg.id];
+            return copy;
+          });
+        } else {
+          setStatuses((prev) => ({ ...prev, [cfg.id]: 'failed' }));
+          setErrorMessages((prev) => ({
+            ...prev,
+            [cfg.id]: res.error || 'Test connection gagal',
+          }));
+        }
+      } catch (err: any) {
+        setStatuses((prev) => ({ ...prev, [cfg.id]: 'failed' }));
+        setErrorMessages((prev) => ({
+          ...prev,
+          [cfg.id]: err.message || 'Network error saat menguji koneksi',
+        }));
+      }
+    });
+
+    await Promise.all(testPromises);
+
+    // Pastikan animasi berjalan minimal 2.5 detik agar pengguna dapat melihat aliran sinar secara utuh
+    const elapsedTotal = Date.now() - testStartTime;
+    if (elapsedTotal < 2500) {
+      await new Promise((resolve) => setTimeout(resolve, 2500 - elapsedTotal));
+    }
+
+    setIsTestingConnection(false);
   };
 
   // Ping a single config
@@ -237,8 +340,9 @@ export function PingAllModal({
 
   // Execute concurrent ping for all databases
   const handleStartPingAll = async (targetConfigs: SupabaseConfigDTO[] = configs) => {
-    if (isPingingAll || targetConfigs.length === 0) return;
+    if (isPingingAll || isTestingConnection || targetConfigs.length === 0) return;
     setIsPingingAll(true);
+    setCurrentAction('pinging');
     setHasExecuted(true);
 
     // Set targets to pinging
@@ -299,7 +403,11 @@ export function PingAllModal({
   const handleRetryFailedOnly = () => {
     const failedConfigs = configs.filter((c) => statuses[c.id] === 'failed');
     if (failedConfigs.length > 0) {
-      handleStartPingAll(failedConfigs);
+      if (currentAction === 'testing') {
+        handleTestConnectionAll(failedConfigs);
+      } else {
+        handleStartPingAll(failedConfigs);
+      }
     }
   };
 
@@ -418,11 +526,15 @@ export function PingAllModal({
               <div className="flex items-center gap-2">
                 <span className="flex size-2 rounded-full bg-brand-400 animate-pulse" />
                 <span className="text-slate-200 font-medium">
-                  {isPingingAll
+                  {isTestingConnection
+                    ? 'Sedang menguji konektivitas database Supabase ke seluruh project...'
+                    : isPingingAll
                     ? 'Sedang mentransmisikan keep-alive heartbeat serentak...'
                     : hasExecuted
-                    ? 'Transmisi selesai. Arahkan kursor ke ikon untuk info database, atau buka Ringkasan Laporan.'
-                    : 'Siap menjalankan transmisi. Klik tombol "Mulai Ping Serentak" di bawah.'}
+                    ? currentAction === 'testing'
+                      ? 'Pengujian koneksi selesai. Klik "Mulai Ping Serentak" untuk mengirim heartbeat.'
+                      : 'Transmisi selesai. Arahkan kursor ke ikon untuk info database, atau buka Ringkasan Laporan.'
+                    : 'Siap diperiksa. Klik "Test Connection" untuk verifikasi atau "Mulai Ping Serentak" di bawah.'}
                 </span>
               </div>
               <div className="flex items-center gap-3 font-mono">
@@ -462,8 +574,10 @@ export function PingAllModal({
                     ref={hubRef}
                     className={cn(
                       'size-20 bg-slate-900/95 border-2 transition-all duration-300 relative shadow-2xl',
-                      isPingingAll
-                        ? 'border-emerald-400 shadow-emerald-500/40 ring-4 ring-emerald-500/20 animate-pulse'
+                      isPingingAll || isTestingConnection
+                        ? isTestingConnection
+                          ? 'border-cyan-400 shadow-cyan-500/40 ring-4 ring-cyan-500/20 animate-pulse'
+                          : 'border-emerald-400 shadow-emerald-500/40 ring-4 ring-emerald-500/20 animate-pulse'
                         : 'border-brand-500/80 shadow-brand-500/30'
                     )}
                     title="KeepAlive Hub (Cron Engine)"
@@ -471,16 +585,25 @@ export function PingAllModal({
                     <Zap
                       className={cn(
                         'size-9 transition-colors',
-                        isPingingAll ? 'text-emerald-400' : 'text-brand-400'
+                        isTestingConnection
+                          ? 'text-cyan-400'
+                          : isPingingAll
+                          ? 'text-emerald-400'
+                          : 'text-brand-400'
                       )}
                     />
-                    {isPingingAll && (
-                      <span className="absolute inset-0 rounded-full border-2 border-emerald-400 animate-ping opacity-50" />
+                    {(isPingingAll || isTestingConnection) && (
+                      <span
+                        className={cn(
+                          'absolute inset-0 rounded-full border-2 animate-ping opacity-50',
+                          isTestingConnection ? 'border-cyan-400' : 'border-emerald-400'
+                        )}
+                      />
                     )}
                   </Circle>
                   <span className="text-xs font-bold text-white mt-2 block">KeepAlive Hub</span>
                   <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
-                    <Server className="size-3" /> Cron Engine
+                    <Server className="size-3" /> {isTestingConnection ? 'Connection Tester' : 'Cron Engine'}
                   </span>
                 </div>
 
@@ -510,7 +633,9 @@ export function PingAllModal({
                                 : status === 'failed'
                                 ? 'border-rose-400 shadow-lg shadow-rose-500/30'
                                 : status === 'pinging'
-                                ? 'border-brand-400 ring-2 ring-brand-400/50 animate-pulse'
+                                ? isTestingConnection || testingSingleId === cfg.id
+                                  ? 'border-cyan-400 ring-2 ring-cyan-400/50 animate-pulse'
+                                  : 'border-brand-400 ring-2 ring-brand-400/50 animate-pulse'
                                 : cn(palette.border, palette.glow)
                             )}
                             title={`${cfg.databaseName} (${status})`}
@@ -530,7 +655,7 @@ export function PingAllModal({
                               {status === 'success' && (
                                 <span className="text-emerald-400 font-semibold flex items-center gap-1">
                                   <CheckCircle2 className="size-3 shrink-0" />
-                                  {latency ?? 24}ms • Aktif
+                                  {latency ?? 24}ms • {currentAction === 'testing' ? 'Terhubung' : 'Aktif'}
                                 </span>
                               )}
                               {status === 'failed' && (
@@ -540,9 +665,18 @@ export function PingAllModal({
                                 </span>
                               )}
                               {status === 'pinging' && (
-                                <span className="text-brand-400 flex items-center gap-1">
+                                <span
+                                  className={cn(
+                                    'flex items-center gap-1',
+                                    isTestingConnection || testingSingleId === cfg.id
+                                      ? 'text-cyan-400'
+                                      : 'text-brand-400'
+                                  )}
+                                >
                                   <Loader2 className="size-3 animate-spin shrink-0" />
-                                  Memeriksa...
+                                  {isTestingConnection || testingSingleId === cfg.id
+                                    ? 'Menguji koneksi...'
+                                    : 'Memeriksa...'}
                                 </span>
                               )}
                               {status === 'idle' && (
@@ -563,8 +697,10 @@ export function PingAllModal({
                 const status = statuses[cfg.id] || 'idle';
                 const isProjectAnimated =
                   isPingingAll ||
+                  isTestingConnection ||
                   status === 'pinging' ||
-                  retryingSingleId === cfg.id;
+                  retryingSingleId === cfg.id ||
+                  testingSingleId === cfg.id;
 
                 let startColor = palette.start;
                 let stopColor = palette.stop;
@@ -576,8 +712,13 @@ export function PingAllModal({
                   startColor = '#10b981';
                   stopColor = '#34d399';
                 } else if (status === 'pinging') {
-                  startColor = '#38bdf8';
-                  stopColor = '#6366f1';
+                  if (isTestingConnection || testingSingleId === cfg.id) {
+                    startColor = '#06b6d4';
+                    stopColor = '#3b82f6';
+                  } else {
+                    startColor = '#38bdf8';
+                    stopColor = '#6366f1';
+                  }
                 }
 
                 return (
@@ -606,18 +747,22 @@ export function PingAllModal({
                 pathColor="#475569"
                 pathOpacity={
                   isPingingAll ||
+                  isTestingConnection ||
                   Object.values(statuses).some((s) => s === 'pinging') ||
-                  retryingSingleId !== null
+                  retryingSingleId !== null ||
+                  testingSingleId !== null
                     ? 0.45
                     : 0.25
                 }
                 pathWidth={2}
-                gradientStartColor="#8b5cf6"
-                gradientStopColor="#06b6d4"
+                gradientStartColor={isTestingConnection ? '#06b6d4' : '#8b5cf6'}
+                gradientStopColor={isTestingConnection ? '#3b82f6' : '#06b6d4'}
                 isAnimated={
                   isPingingAll ||
+                  isTestingConnection ||
                   Object.values(statuses).some((s) => s === 'pinging') ||
-                  retryingSingleId !== null
+                  retryingSingleId !== null ||
+                  testingSingleId !== null
                 }
               />
             </div>
@@ -773,7 +918,7 @@ export function PingAllModal({
                           {status === 'failed' && isTableMissing && (
                             <button
                               onClick={() => handleGenerateTable(cfg)}
-                              disabled={isMigrating || isRetrying}
+                              disabled={isMigrating || isRetrying || testingSingleId === cfg.id || isTestingConnection || isPingingAll}
                               className="px-3 py-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-xs font-bold text-white flex items-center gap-1.5 shadow-md shadow-brand-500/25 transition-all disabled:opacity-50"
                             >
                               {isMigrating ? (
@@ -791,8 +936,26 @@ export function PingAllModal({
                           )}
 
                           <button
+                            onClick={() => handleSingleTestConnection(cfg)}
+                            disabled={isRetrying || isMigrating || testingSingleId === cfg.id || isTestingConnection || isPingingAll}
+                            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-cyan-300 border border-cyan-500/30 flex items-center gap-1.5 transition-all disabled:opacity-50"
+                          >
+                            {testingSingleId === cfg.id ? (
+                              <>
+                                <Loader2 className="size-3 animate-spin" />
+                                <span>Menguji...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Activity className="size-3 text-cyan-400" />
+                                <span>Test Koneksi</span>
+                              </>
+                            )}
+                          </button>
+
+                          <button
                             onClick={() => handleSinglePing(cfg)}
-                            disabled={isRetrying || isMigrating}
+                            disabled={isRetrying || isMigrating || testingSingleId === cfg.id || isTestingConnection || isPingingAll}
                             className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition-all disabled:opacity-50"
                           >
                             {isRetrying ? (
@@ -815,7 +978,11 @@ export function PingAllModal({
                         <div className="mt-3 p-3 rounded-xl bg-emerald-950/40 border border-emerald-800/40 text-xs text-emerald-300 flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <CheckCircle2 className="size-4 text-emerald-400 shrink-0" />
-                            <span>Keep-Alive Confirmed: Masa aktif 7 hari Supabase berhasil di-reset.</span>
+                            <span>
+                              {currentAction === 'testing'
+                                ? 'Koneksi Berhasil: Akses database Supabase & tabel cronjob_keepalive terverifikasi aktif.'
+                                : 'Keep-Alive Confirmed: Masa aktif 7 hari Supabase berhasil di-reset.'}
+                            </span>
                           </div>
                           <span className="font-mono font-bold text-emerald-400 shrink-0">
                             {latency ?? 24}ms
@@ -892,7 +1059,7 @@ export function PingAllModal({
             )}
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
             {activeView === 'report' ? (
               <button
                 onClick={() => setActiveView('visual')}
@@ -918,9 +1085,34 @@ export function PingAllModal({
               Tutup
             </button>
 
+            {/* Tombol Test Connection (sebelum mulai test ping) */}
+            <button
+              onClick={() => handleTestConnectionAll()}
+              disabled={isPingingAll || isTestingConnection || configs.length === 0}
+              className="px-4 sm:px-5 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 border border-cyan-500/40 hover:border-cyan-400 text-xs font-bold text-cyan-300 hover:text-white flex items-center gap-2 shadow-lg shadow-cyan-500/10 transition-all hover:scale-105 disabled:opacity-50"
+            >
+              {isTestingConnection ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin text-cyan-300" />
+                  <span>Menguji Koneksi...</span>
+                </>
+              ) : hasExecuted && currentAction === 'testing' ? (
+                <>
+                  <RefreshCw className="size-3.5 text-cyan-400" />
+                  <span>Ulangi Test Connection ({configs.length})</span>
+                </>
+              ) : (
+                <>
+                  <Activity className="size-3.5 text-cyan-400" />
+                  <span>Test Connection ({configs.length} Project)</span>
+                </>
+              )}
+            </button>
+
+            {/* Tombol Mulai Ping Serentak */}
             <button
               onClick={() => handleStartPingAll()}
-              disabled={isPingingAll || configs.length === 0}
+              disabled={isPingingAll || isTestingConnection || configs.length === 0}
               className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-500 via-brand-600 to-indigo-600 hover:from-brand-600 hover:to-indigo-700 text-xs font-bold text-white flex items-center gap-2 shadow-lg shadow-brand-500/25 transition-all hover:scale-105 disabled:opacity-50"
             >
               {isPingingAll ? (
@@ -928,7 +1120,7 @@ export function PingAllModal({
                   <Loader2 className="size-3.5 animate-spin" />
                   <span>Mengirim Heartbeat Serentak...</span>
                 </>
-              ) : hasExecuted ? (
+              ) : hasExecuted && currentAction === 'pinging' ? (
                 <>
                   <RefreshCw className="size-3.5" />
                   <span>Ulangi Semua Ping</span>
